@@ -1,0 +1,54 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  tr:nth-child(even) {background-color: #f9f9f9;}
+</style>
+<h2>Статистика склада</h2>
+<p>Общее количество свай: {{ total_count }}</p>
+<p>Общее количество дефектных свай: {{ total_defect }}</p>
+
+<h2>Детальная статистика склада</h2>
+
+
+
+
+{% for name, stats in piles_stats.items %}
+    <div>
+        <h3>{{ name }}</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Размер</th>
+              <th>Количество</th>
+              <th>Дефекты</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stat in stats %}
+            <tr>
+              <td>{{ stat.size }}</td>
+              <td>{{ stat.total_count }}</td>
+              <td>{{ stat.total_defect }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+{% endfor %}
+
+
+
+{% endblock %}

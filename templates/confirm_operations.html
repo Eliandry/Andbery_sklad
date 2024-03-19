@@ -1,0 +1,86 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Операции на подтверждение отгрузок</h2>
+<style>
+  .icon-true {
+    color: green;
+  }
+
+  .icon-false {
+    color: red;
+  }
+</style>
+<div>
+    <table border="1">
+        <tr>
+            <th>Дата</th>
+            <th>Лид</th>
+            <th>Количество</th>
+            <th>Подтверждение охранника</th>
+            <th>Номер машины</th>
+            <th>Бригада</th>
+            <th>Действие</th>
+        </tr>
+        {% for operation in operations_to_confirm %}
+        <tr>
+            <td>{{ operation.date|date:"d.m.Y" }}</td>
+            <td>{{ operation.manager }}</td>
+            <td>{{ operation.quantity }}</td>
+            <td>
+            {% if operation.confirm %}
+                 <span class="icon-true">&#10004;</span> <!-- Зеленая галочка -->
+            {% else %}
+                <span class="icon-false">&#10008;</span> <!-- Красный крестик -->
+            {% endif %}
+            </td>
+            <td>{{ operation.number_car }}</td>
+            <td>{{ operation.brigade }}</td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="operation_id" value="{{ operation.id }}">
+                    <input type="hidden" name="action" value="confirm">
+                    <button type="submit">Подтвердить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>Подтвержденные операции</h2>
+
+<div>
+    <table border="1">
+        <tr>
+            <th>Дата</th>
+            <th>Лид</th>
+            <th>Количество</th>
+            <th>Подтверждение охранника</th>
+            <th>Номер машины</th>
+            <th>Бригада</th>
+            <th>Действие</th>
+        </tr>
+        {% for operation in confirmed_operations %}
+        <tr>
+            <td>{{ operation.date|date:"d.m.Y" }}</td>
+            <td>{{ operation.manager }}</td>
+            <td>{{ operation.quantity }}</td>
+            <td>{{ operation.confirm }}</td>
+            <td>{{ operation.number_car }}</td>
+            <td>{{ operation.brigade }}</td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="operation_id" value="{{ operation.id }}">
+                    <input type="hidden" name="action" value="cancel">
+                    <button type="submit">Отменить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

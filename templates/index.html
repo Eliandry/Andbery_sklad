@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ЭндбериСклад</title>
+    {% load static %}
+    <style>
+        header {
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f44336;
+            padding: 10px;
+        }
+        .header-logo, .header-nav {
+            flex: 1;
+        }
+       .logo {
+            height: 50px;
+        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .header { background-color: #f3f3f3; padding: 20px; text-align: center; }
+
+        .nav {
+        padding: 10px;
+        text-align: right;
+        background-image: linear-gradient(to right, #e01212, #000000);
+        }
+        .nav a {
+        margin-left: 15px;
+        text-decoration: none;
+        color: white;
+        padding: 10px 15px; /* Увеличиваем паддинг для более крупных кнопок */
+        background-image: linear-gradient(to right, #f44336, #b71c1c); /* Градиентный фон от светло-красного к темно-красному */
+        border: none; /* Убираем границу */
+        border-radius: 5px; /* Скругляем углы */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Добавляем тень для эффекта глубины */
+        transition: all 0.3s ease; /* Плавное изменение стилей при наведении и фокусе */
+        }
+
+        .nav a:hover, .nav a:focus {
+        background-image: linear-gradient(to right, #b71c1c, #f44336); /* Изменяем направление градиента при наведении */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Увеличиваем тень для эффекта "поднятия" кнопки */
+        transform: translateY(-2px); /* Небольшое смещение кнопки вверх при наведении */
+        }
+
+        .nav span {
+        color: white; /* Уточнение: обеспечиваем контраст цвета текста с фоном */
+        }
+            .content { padding: 20px; }
+       .content {
+            min-height: 100vh;
+            width: 80%; /* Задает ширину блока контента, чтобы не занимал всю страницу */
+            margin: 0 auto; /* Выравнивает блок по центру страницы */
+            padding: 20px; /* Добавляет отступы внутри блока */
+            background-color: white; /* Фоновый цвет блока контента */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Добавляет тень для визуального выделения блока */
+        }
+
+       body {
+            background-image: url('{% static "1.png" %}'); /* Устанавливает изображение фона для всей страницы */
+            background-size: cover; /* Масштабирует фоновое изображение, чтобы оно покрывало всю доступную область */
+            background-position: center; /* Центрирует фоновое изображение */
+            background-attachment: fixed; /* Фиксирует фоновое изображение при прокрутке страницы */
+       }
+        .header h1 {
+            margin: 0;
+            background: -webkit-linear-gradient(left, #e01212, #941616);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header h1 .black {
+            -webkit-text-fill-color: black;
+            color: black;
+            background: none;
+        }
+
+.header h1 .gradient-text {
+    background: -webkit-linear-gradient(left, #e01212, #941616);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+    </style>
+    {% load static %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="icon" type="image/png" href="{% static '1.ico' %}">
+</head>
+<body>
+    <div class="header">
+
+        <a href="/"><img src="{% static 'logo.png' %}" alt="Логотип" class="logo"></a>
+         <h1>
+            <span class="gradient-text">Эндбери</span><span class="black">С</span>клад
+        </h1>
+    </div>
+    <div class="nav">
+        {% if user.is_authenticated %}
+            <a href="{% url 'warehouse_statistics' %} " >Статистика склада</a>
+            <span style="color: white;">Привет, {{ user.username }}!</span> <!-- Белый текст для лучшего контраста на красном фоне -->
+            <a href="{% url 'logout' %}">Выйти</a>
+        {% else %}
+            <a href="{% url 'login' %}">Войти</a>
+        {% endif %}
+    </div>
+    <div class="content">
+        {% block content %}
+        <!-- Содержимое страницы -->
+        {% endblock %}
+    </div>
+</body>
+</html>

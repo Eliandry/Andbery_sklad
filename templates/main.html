@@ -1,0 +1,286 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+ table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-image: linear-gradient(to right, #9e2e35, #9e2e35);
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+.button {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 20px;
+    background-image: linear-gradient(to right, #f44336, #d32f2f); /* Градиентный фон */
+    color: white;
+    text-decoration: none;
+    border: none; /* Убираем стандартную рамку */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Добавляем тень для эффекта глубины */
+    transition: all 0.3s ease; /* Плавные переходы для фона, тени и трансформации */
+}
+
+    .button:hover {
+    background-image: linear-gradient(to right, #d32f2f, #b71c1c); /* Изменение градиента при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Увеличение тени для "поднятия" кнопки */
+    transform: translateY(-2px); /* Поднимаем кнопку при наведении */
+}
+.header-container {
+    text-align: center; /* Центрирование содержимого */
+}
+    h2 {
+    display: inline-block; /* Позволяет заголовку занимать только необходимое пространство */
+    font-family: 'Comic Sans MS', cursive; /* Установка шрифта */
+    position: relative; /* Относительное позиционирование для псевдоэлемента */
+    margin-bottom: 20px; /* Отступ снизу для разделения от линии */
+}
+
+/* Градиентная линия под заголовком */
+h2::after {
+    content: ''; /* Необходимо для создания псевдоэлемента */
+    display: block; /* Блочный тип позволяет применить margin: auto */
+    width: 50%; /* Фиксированная ширина линии */
+    height: 2px; /* Высота линии */
+    background-image: linear-gradient(to right, #ff4747, #e01212); /* Градиент */
+    margin: 8px auto 0; /* Верхний отступ и автоматическое центрирование */
+}
+    .buttons-container {
+    text-align: center; /* Центрирует содержимое контейнера */
+    }
+ @media (max-width: 768px) {
+        .buttons-container {
+            flex-direction: column;
+        }
+
+        .button {
+            width: 100%;
+            box-sizing: border-box; /* Убедитесь, что кнопки не выходят за пределы контейнера */
+        }
+
+        table, th, td {
+            font-size: 14px; /* Уменьшаем размер шрифта для таблицы */
+        }
+    }
+        button[type="submit"] {
+        background-color: #4CAF50; /* Зеленый цвет, не слишком яркий */
+        color: white;
+        padding: 10px 20px; /* Увеличиваем размер кнопки */
+        border: none;
+        border-radius: 5px; /* Скругляем углы */
+        cursor: pointer; /* Изменяем курсор на указатель */
+        font-size: 16px; /* Увеличиваем размер шрифта */
+        transition: background-color 0.3s ease; /* Плавное изменение цвета при наведении */
+    }
+
+    button[type="submit"]:hover {
+        background-color: #45a049; /* Немного темнее при наведении */
+    }
+        .checkmark {
+        color: green;
+        font-size: 20px; /* Размер галочки */
+    }
+</style>
+
+{% if user.is_authenticated %}
+    {% if user.userprofile.role.name == "Кладовщик" %}
+        <div class="header-container">
+    <h2>Действия</h2>
+</div>
+        <div class="buttons-container">
+        <a href="{% url 'operation_departure' %}" class="button">Отгрузка свай</a>
+        <a href="{% url 'return_pile' %}" class="button">Возврат</a>
+        </div>
+<div class="latest-operations">
+    <h3>Последние операции прихода</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Дефекты</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_arrivals %}
+                <tr>
+                    <td>{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ arrival.pile.name }} {{ arrival.pile.size }}</td>
+                    <td>{{ arrival.quantity }}</td>
+                    <td>{{ arrival.defect }}</td>
+                    <td>{{ arrival.description }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+        <div class="latest-operations">
+    <h3>Последние операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for departure in latest_departures %}
+                <tr>
+                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ departure.pile.name }}</td>
+                    <td>{{ departure.quantity }}</td>
+                    <td>{{ departure.description }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% endif %}
+{% endif %}
+
+{% if user.userprofile.role.name == "Охранник" %}
+    <div class="latest-operations">
+    <h3>Активные операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Вес</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+                <th>Подтверждение</th>
+            </tr>
+        </thead>
+        <tbody>
+        <form method="post">
+        {% csrf_token %}
+            {% for departure in departures %}
+                <tr>
+                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ departure.pile.name }} {{ arrival.pile.size }}</td>
+                    <td>{{ departure.quantity }}</td>
+                    <td>{{ departure.total_weight }} кг</td>
+                    <td>{{ departure.number_car }}</td>
+                    <td>{{ departure.brigade.name }}</td>
+                    <td><button  type="submit" name="departure_id" value="{{ departure.id }}">Подтвердить</button></td>
+                </tr>
+            {% endfor %}
+        </form>
+        </tbody>
+    </table>
+</div>
+
+<div class="latest-operations">
+    <h3>Последние операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Подтверждение</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for departure in confirmed%}
+                <tr>
+                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ departure.pile.name }}</td>
+                    <td>{{ departure.quantity }}</td>
+                    <td><span class="checkmark">&#10003;</span></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Бухгалтер" %}
+    <a href="{% url 'confirm_operations' %}" class="button">Подтверждение операций отгрузки</a>
+    <a href="{% url 'confirm_return_pile' %}" class="button">Подтверждение операций возврата</a>
+    <a href="{% url 'search_departures' %}" class="button">Поиск</a>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Производство" %}
+
+        <div class="buttons-container">
+            <a href="{% url 'operation_arrival' %}" class="button">Производство свай</a>
+            <a href="{% url 'add_beton' %}" class="button">Прибытие бетона</a>
+            <a href="{% url 'add_armature' %}" class="button">Прибытие арматуры</a>
+            <a href="{% url 'add_wire' %}" class="button">Прибытие проволки</a>
+            <a href="{% url 'search' %}" class="button">Поиск</a>
+        </div>
+        <div class="latest-operations">
+    <h3>Последние операции прихода</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Дефекты</th>
+                <th>Описание</th>
+                <th>Стоимость</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_arrivals %}
+                <tr>
+                    <td>{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ arrival.pile.name }} {{ arrival.pile.size }}</td>
+                    <td>{{ arrival.quantity }}</td>
+                    <td>{{ arrival.defect }}</td>
+                    <td>{{ arrival.description }}</td>
+                    <td>{{ arrival.price }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+        <div class="latest-operations">
+    <h3>Последние операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Автомобиль</th>
+                <th>Подтверждение</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for departure in latest_departures%}
+                <tr>
+                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ departure.pile.name }} {{ departure.pile.size }}</td>
+                    <td>{{ departure.quantity }}</td>
+                    <td>{{ departure.number_car }}</td>
+                    <td><span class="checkmark">&#10003;</span></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

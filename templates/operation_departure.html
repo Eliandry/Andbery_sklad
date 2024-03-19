@@ -1,0 +1,219 @@
+{% extends "index.html" %}
+{% block content %}
+<script>
+$(document).ready(function() {
+  $('#id_name_pile').change(function() {  // Обратите внимание на правильный ID для вашего поля выбора NamePile
+    var url = $('#OperationDepartureForm').attr('data-piles-url');  // Получаем URL из атрибута data-piles-url формы
+    var namePileId = $(this).val();  // Получаем выбранный ID NamePile
+
+    $.ajax({
+      url: url,
+      data: {
+        'name_pile_id': namePileId  // Передаем ID в запросе
+      },
+      success: function (data) {
+        $("#id_pile").html('');  // Очищаем текущие опции
+        data.forEach(function (pile) {
+          $("#id_pile").append(`<option value="${pile.id}">${pile.size}</option>`);  // Добавляем новые опции
+        });
+      }
+    });
+  });
+});
+
+</script>
+<script>
+$(document).ready(function() {
+
+  $('#id_quantity').addClass('required-field');
+  $('#id_defect').addClass('required-field');
+  $('#id_brigade').addClass('required-field');
+  $('#id_number_car').addClass('required-field');
+
+
+
+  function checkFormFields() {
+    var allFilled = true;
+    $('.required-field').each(function() {
+      if ($(this).val() === '') {
+        allFilled = false;
+        return false; // Выход из цикла
+      }
+    });
+
+
+    $('form#OperationDepartureForm button[type="submit"]').prop('disabled', !allFilled);
+  }
+
+
+  $(document).on('change keyup', '.required-field', checkFormFields);
+
+
+  checkFormFields();
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelector("#id_type_brigade").addEventListener("change", function() {
+    var url = "{% url 'ajax_load_brigades' %}";
+    var type = this.value;
+
+    fetch(`${url}?type=${type}`)
+      .then(response => response.json())
+      .then(data => {
+        var brigadeSelect = document.querySelector("#id_brigade");
+        brigadeSelect.innerHTML = '';
+        data.forEach(function(b) {
+          var option = new Option(b.name, b.id, false, false);
+          brigadeSelect.add(option);
+        });
+      });
+  });
+
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const carBrandSelect = document.getElementById('id_car_brand'); // Убедитесь, что здесь правильный ID
+  carBrandSelect.addEventListener('change', function() {
+    const brand = this.value;
+    fetch(`/get-car-numbers/?brand=${brand}`) // Путь к вашему URL для AJAX запроса
+      .then(response => response.json())
+      .then(data => {
+        const numberCarSelect = document.getElementById('id_number_car'); // Убедитесь, что здесь правильный ID
+        numberCarSelect.innerHTML = ''; // Очищаем текущие опции
+        data.forEach(car => {
+          const option = new Option(car.number, car.id); // Создаем новую опцию
+          numberCarSelect.add(option); // Добавляем опцию в селектор
+        });
+      });
+  });
+});
+</script>
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // Получаем элементы формы
+    var pileSelect = document.getElementsByName('pile')[0];
+    var quantityInput = document.getElementsByName('quantity')[0];
+    var carSelect = document.getElementsByName('number_car')[0]; // Поле выбора автомобиля
+    var totalWeightDiv = document.getElementById('total_weight');
+    var alertDiv = document.getElementById('weight_alert'); // Предполагается, что есть div для сообщения
+
+    // Функция обновления общего веса свай
+    function updateTotalWeight() {
+      var pileId = pileSelect.value;
+      var quantity = quantityInput.value;
+      fetch(`/operation/departure/ajax/load/pile/weight/?pile_id=${pileId}`)
+        .then(response => response.json())
+        .then(data => {
+          var totalWeight = data.weight * quantity; // Вес свай в кг
+          checkCarCapacity(totalWeight); // Проверяем грузоподъёмность автомобиля
+        })
+        .catch(error => console.error('Ошибка:', error));
+    }
+
+    // Функция для проверки грузоподъёмности автомобиля
+    function checkCarCapacity(pileWeight) {
+  var carId = carSelect.value;
+  if (!carId) {
+    console.log("Автомобиль не выбран.");
+    // Можно здесь же очистить или скрыть div с предупреждением, если это необходимо
+    alertDiv.textContent = "";
+    alertDiv.style.display = "none";
+    return; // Прерываем функцию, если автомобиль не выбран
+  }
+
+  fetch(`/operation/departure/ajax/load/car/weight/?car_id=${carId}`)
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then(data => {
+      var carWeight = data.weight * 1000; // Переводим тонны в кг
+      if (pileWeight > carWeight) {
+        alertDiv.textContent = "Общий вес свай превышает грузоподъёмность автомобиля!";
+        alertDiv.style.display = "block";
+      } else {
+        alertDiv.textContent = "";
+        alertDiv.style.display = "none";
+      }
+      totalWeightDiv.textContent = `Общий вес: ${pileWeight} кг`;
+    })
+    .catch(error => console.error('Ошибка:', error));
+}
+
+    // Добавляем слушатели событий
+    pileSelect.addEventListener("change", updateTotalWeight);
+    quantityInput.addEventListener("input", updateTotalWeight);
+    carSelect.addEventListener("change", () => updateTotalWeight()); // Обновляем при смене автомобиля
+  });
+</script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button[type="submit"] {
+        background-color: #e30b0b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #ad3939;
+    }
+
+    .form-group select {
+        display: block;
+        width: 100%;
+    }
+</style>
+  <h2>Отгрузка свай</h2>
+
+  <form id="OperationDepartureForm" data-piles-url="{% url 'ajax_load_piles' %}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div id="total_weight">Общий вес: 0 кг</div>
+    <div id="weight_alert" style="display: none; color: red; margin-top: 10px;"></div>
+    <button type="submit">Отправить</button>
+
+  </form>
+{%endblock%}

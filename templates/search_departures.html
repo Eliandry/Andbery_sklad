@@ -1,0 +1,65 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h2>Поиск операций отгрузки</h2>
+
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit">Поиск</button>
+</form>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd; /* Горизонтальные линии между строками */
+    }
+    th {
+        background-color: #f2f2f2; /* Серый фон для заголовков */
+        color: #333; /* Цвет текста для заголовков */
+    }
+    tr:hover {background-color: #f5f5f5;} /* Цвет фона для строки при наведении */
+    .icon-true {
+        color: green;
+    }
+    .icon-false {
+        color: red;
+    }
+</style>
+<h3>Результаты поиска</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Лид</th>
+            <th>Дата</th>
+            <th>Название сваи</th>
+            <th>Количество</th>
+            <th>Описание</th>
+            <th>Номер автомобиля</th>
+            <th>Бригада</th>
+            <th>Подтверждено</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in results %}
+        <tr>
+            <td>{{ item.manager }}</td>
+            <td>{{ item.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ item.pile.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.number_car }}</td>
+            <td>{{ item.brigade.name }}</td>
+            <td>{{ item.confirm_b|yesno:"Да,Нет" }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+            <td colspan="8">Нет результатов.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  tr:nth-child(even) {background-color: #f9f9f9;}
+</style>
+<h2>Поиск по диапазону дат</h2>
+<form method="get" action="{% url 'search' %}">
+    {{ form.as_p }}
+    <button type="submit">Поиск</button>
+</form>
+
+{% if search_results %}
+    {% if search_results.departures %}
+        <h3>Отгрузки</h3>
+        <table>
+            <tr>
+                <th>Дата</th>
+                <th>Лид</th>
+                <th>Свая</th>
+                <th>Количество</th>
+
+                <th>Описание</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+            </tr>
+            {% for item in search_results.departures %}
+            <tr>
+                <td>{{ item.date|date:"d-m-Y" }}</td>
+                <td>{{ item.manager }}</td>
+                <td>{{ item.pile.name }}</td>
+                <td>{{ item.quantity }}</td>
+
+                <td>{{ item.description }}</td>
+                <td>{{ item.number_car.model }} - {{ item.number_car.number }}</td>
+                <td>{{ item.brigade.name }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if search_results.arrivals %}
+    <h3>Приходы</h3>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Свая</th>
+            <th>Количество</th>
+
+            <th>Описание</th>
+            <th>Дефекты</th>
+
+            <th>Бригада</th>
+        </tr>
+        {% for item in search_results.arrivals %}
+        <tr>
+            <td>{{ item.date|date:"d-m-Y" }}</td>
+            <td>{{ item.pile.name }}</td>
+            <td>{{ item.quantity }}</td>
+
+            <td>{{ item.description }}</td>
+            <td>{{ item.defect }}</td>
+
+            <td>{{ item.brigade.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.returns %}
+    <h3>Возвраты</h3>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Лид</th>
+            <th>Свая</th>
+            <th>Количество</th>
+
+            <th>Описание</th>
+            <th>Подтверждено</th>
+            <th>Пользователь</th>
+        </tr>
+        {% for item in search_results.returns %}
+        <tr>
+            <td>{{ item.date|date:"d-m-Y" }}</td>
+            <td>{{ item.manager }}</td>
+            <td>{{ item.pile.name }}</td>
+            <td>{{ item.quantity }}</td>
+
+            <td>{{ item.description }}</td>
+            <td>{{ item.confirm_b|yesno:"Да,Нет" }}</td>
+            <td>
+                {% for user in item.user.all %}
+                    {{ user.get_full_name|default:user.username }}
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.beton %}
+    <h3>Бетон</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.beton %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}</td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.wire %}
+    <h3>Проволока</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.wire %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}</td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.armature %}
+    <h3>Арматура</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.armature %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}"></td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% else %}
+    <p>Пожалуйста, выберите диапазон дат для поиска.</p>
+{% endif %}
+{% endblock %}
