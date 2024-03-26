@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import Brigade, BrigadeWork, Role, NamePile, Pile, UserProfile, OperationArrival, OperationDeparture, \
-    ReturnPile, Car
-
+    ReturnPile, Car, WirehouseB, Order
 
 from .models import Beton, Wire, Armature
 
@@ -27,7 +26,9 @@ class ArmatureAdmin(admin.ModelAdmin):
 class BrigadeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
     search_fields = ('name',)
-
+@admin.register(WirehouseB)
+class BrigadeAdmin(admin.ModelAdmin):
+    list_display = ('id', )
 
 @admin.register(BrigadeWork)
 class BrigadeWorkAdmin(admin.ModelAdmin):
@@ -63,7 +64,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Car)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('model', 'number')
+    list_display = ('model', 'number','weight')
 
 @admin.register(OperationArrival)
 class OperationArrivalAdmin(admin.ModelAdmin):
@@ -88,3 +89,7 @@ class ReturnPileAdmin(admin.ModelAdmin):
     list_filter = ('date',)
     search_fields = ('pile__name__name',)
     filter_horizontal = ('user',)
+
+@admin.register(Order)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('piles_info',)

@@ -223,14 +223,40 @@ h2::after {
 {% if user.is_authenticated and user.userprofile.role.name == "Производство" %}
 
         <div class="buttons-container">
+            <a href="{% url 'order' %}" class="button">Разнарядка</a>
             <a href="{% url 'operation_arrival' %}" class="button">Производство свай</a>
-            <a href="{% url 'add_beton' %}" class="button">Прибытие бетона</a>
-            <a href="{% url 'add_armature' %}" class="button">Прибытие арматуры</a>
-            <a href="{% url 'add_wire' %}" class="button">Прибытие проволки</a>
+            <a href="{% url 'classes' %}" class="button">Прибытие материалов</a>
+
             <a href="{% url 'search' %}" class="button">Поиск</a>
         </div>
         <div class="latest-operations">
-    <h3>Последние операции прихода</h3>
+      {% if materials_total %}
+        <h2>Сегодняшняя разнарядка</h2>
+            <h4>Материалы</h4>
+        <ul>
+            <li>Бетон: {{ materials_total.total_beton }} куб М</li>
+            <li>Проволка 3mm: {{ materials_total.total_wire_3 }} кг</li>
+            <li>Проволка 4mm: {{ materials_total.total_wire_4 }} кг</li>
+            <li>Проволка 6mm: {{ materials_total.total_wire_6 }} кг</li>
+            <li>Арматура: {{ materials_total.total_armature }} кг</li>
+        </ul>
+    {% else %}
+        <p>Пока ничего нет.</p>
+    {% endif %}
+
+    {% if piles_info %}
+        <h4>Сваи</h4>
+        <ul>
+            {% for pile, quantity in piles_info.items %}
+                <li>{{ pile }} - Количество: {{ quantity }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет свай.</p>
+    {% endif %}
+
+
+    <h2>Последние операции прихода</h2>
     <table>
         <thead>
             <tr>
@@ -257,7 +283,7 @@ h2::after {
     </table>
 </div>
         <div class="latest-operations">
-    <h3>Последние операции отгрузки</h3>
+    <h2>Последние операции отгрузки</h2>
     <table>
         <thead>
             <tr>

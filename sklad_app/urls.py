@@ -19,6 +19,11 @@ urlpatterns = [
     path('operation/departure/ajax/load/car/weight/', load_car_weight, name='ajax_load_cars_weight'),
     path('add_beton/', add_beton, name='add_beton'),
     path('add_wire/', add_wire, name='add_wire'),
+    path('add_wire4/', add_wire4, name='add_wire4'),
+    path('add_wire6/', add_wire6, name='add_wire6'),
     path('add_armature/', add_armature, name='add_armature'),
     path('search/', search_by_date_range, name='search'),
+    path('materials_overview/',materials_overview,name='materials_overview'),
+    path('prod_class/',classif,name='classes'),
+    path('order/',create_order,name='order')
 ]

@@ -1,7 +1,7 @@
 from .models import OperationArrival, BrigadeWork, Car
 from django import forms
-from .models import OperationDeparture, NamePile, Pile, ReturnPile
-from .models import Beton, Wire, Armature
+
+from .models import *
 
 
 class BetonForm(forms.ModelForm):
@@ -25,7 +25,26 @@ class WireForm(forms.ModelForm):
             'company_buy': 'Компания-покупатель',
             'price': 'Цена',
         }
-
+class WireForm4(forms.ModelForm):
+    class Meta:
+        model = Wire4
+        exclude = ['date']  # Исключаем поле даты
+        labels = {
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
+        }
+class WireForm6(forms.ModelForm):
+    class Meta:
+        model = Wire6
+        exclude = ['date']  # Исключаем поле даты
+        labels = {
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
+        }
 class ArmatureForm(forms.ModelForm):
     class Meta:
         model = Armature
@@ -43,12 +62,11 @@ class OperationArrivalForm(forms.ModelForm):
 
     class Meta:
         model = OperationArrival
-        fields = ['name_pile', 'pile', 'quantity', 'defect', 'description', 'brigade']
+        fields = ['name_pile', 'pile', 'quantity',  'description', 'brigade']
         labels = {
             'name_pile': 'Название сваи',
             'pile': 'Свая',
             'quantity': 'Количество',
-            'defect': 'Дефекты',
             'description': 'Описание (если требуется)',
             'brigade': 'Бригада',
         }

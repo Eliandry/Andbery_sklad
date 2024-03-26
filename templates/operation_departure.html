@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 </style>
   <h2>Отгрузка свай</h2>
-
+<a href="/" class="button">Назад</a>
   <form id="OperationDepartureForm" data-piles-url="{% url 'ajax_load_piles' %}" method="post">
     {% csrf_token %}
     {{ form.as_p }}

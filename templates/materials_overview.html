@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h2>Обзор материалов</h2>
+
+<h3>Последние поступления</h3>
+
+<h4>Бетон</h4>
+<ul>
+    {% for material in last_five_beton %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 3 мм</h4>
+<ul>
+    {% for material in last_five_wire %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 4 мм</h4>
+<ul>
+    {% for material in last_five_wire4 %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 6 мм</h4>
+<ul>
+    {% for material in last_five_wire6 %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 3 мм</h4>
+<ul>
+    {% for material in last_five_armature %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h3>Всего на складе</h3>
+<ul>
+    <li>Бетон: {{ wirehouseb.beton }}</li>
+    <li>Арматура: {{ wirehouseb.armature }}</li>
+    <li>Проволока 3: {{ wirehouseb.wire3 }}</li>
+    <li>Проволока 4: {{ wirehouseb.wire4 }}</li>
+    <li>Проволока 6: {{ wirehouseb.wire6 }}</li>
+</ul>
+
+{% endblock %}

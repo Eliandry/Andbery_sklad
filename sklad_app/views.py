@@ -1,46 +1,98 @@
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db.models import Count, Sum
 from .forms import *
-from .models import Pile, NamePile, BrigadeWork, ReturnPile, Car
+from .models import Pile, NamePile, BrigadeWork, ReturnPile, Car, WirehouseB
 
 from django.shortcuts import render
 from .models import OperationArrival, OperationDeparture
-
-
+import json
 from django.http import JsonResponse
-from .models import Pile
+from .models import Pile,Order
+
+
 def add_beton(request):
     if request.method == "POST":
         form = BetonForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_beton = form.save(commit=False)
+            wirehouse, _ = WirehouseB.objects.get_or_create(id=1)  # Пример с одним складом
+            wirehouse.beton += new_beton.count  # Предполагаем, что арматура используется для бетона
+            wirehouse.save()
+            new_beton.save()
             return redirect('/')
     else:
         form = BetonForm()
     return render(request, 'add_beton.html', {'form': form})
 
+
+def classif(request):
+    return render(request, 'classes.html')
+
+
 def add_wire(request):
     if request.method == "POST":
         form = WireForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_wire = form.save(commit=False)
+            wirehouse, _ = WirehouseB.objects.get_or_create(id=1)
+            wirehouse.wire3 += new_wire.count
+            wirehouse.save()
+            new_wire.save()
             return redirect('/')
     else:
         form = WireForm()
     return render(request, 'add_wire.html', {'form': form})
 
+
+def add_wire4(request):
+    if request.method == "POST":
+        form = WireForm4(request.POST)
+        if form.is_valid():
+            new_wire = form.save(commit=False)
+            wirehouse, _ = WirehouseB.objects.get_or_create(id=1)
+            wirehouse.wire4 += new_wire.count
+            wirehouse.save()
+            new_wire.save()
+            return redirect('/')
+    else:
+        form = WireForm()
+    return render(request, 'add_wire.html', {'form': form})
+
+
+def add_wire6(request):
+    if request.method == "POST":
+        form = WireForm6(request.POST)
+        if form.is_valid():
+            new_wire = form.save(commit=False)
+            wirehouse, _ = WirehouseB.objects.get_or_create(id=1)
+            wirehouse.wire6 += new_wire.count
+            wirehouse.save()
+            new_wire.save()
+            return redirect('/')
+    else:
+        form = WireForm()
+    return render(request, 'add_wire.html', {'form': form})
+
+
 def add_armature(request):
     if request.method == "POST":
         form = ArmatureForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_arm = form.save(commit=False)
+            wirehouse, _ = WirehouseB.objects.get_or_create(id=1)  # Пример с одним складом
+            wirehouse.armature += new_arm.count  # Предполагаем, что арматура используется для бетона
+            wirehouse.save()
+            new_arm.save()
             return redirect('/')
     else:
         form = ArmatureForm()
     return render(request, 'add_armature.html', {'form': form})
+
+
 def load_car_weight(request):
     car_id = request.GET.get('car_id')
     try:
@@ -52,6 +104,8 @@ def load_car_weight(request):
             return JsonResponse({'error': 'Car ID not provided'}, status=400)
     except Car.DoesNotExist:
         return JsonResponse({'error': 'Car not found'}, status=404)
+
+
 def load_pile_weight(request):
     pile_id = request.GET.get('pile_id')
     try:
@@ -65,10 +119,13 @@ def load_pile_weight(request):
     except Pile.DoesNotExist:
         # Если свая не найдена, возвращаем ошибку или вес равный нулю.
         return JsonResponse({'error': 'Pile not found'}, status=404)
+
+
 def load_brigades(request):
     type = request.GET.get('type')
     brigades = BrigadeWork.objects.filter(type=type).order_by('name')
     return JsonResponse(list(brigades.values('id', 'name')), safe=False)
+
 
 def main(request):
     context = {}
@@ -101,11 +158,35 @@ def main(request):
                 'confirmed': latest_confirmed_departures,
             }
         if request.user.userprofile.role.name == "Производство":
+
             latest_arrivals = OperationArrival.objects.all().order_by('-date')[:10]
             latest_departures = OperationDeparture.objects.all().order_by('-date')[:10]
+            today = timezone.now().date()
+            try:
+                # Получаем последний заказ за сегодня
+                order = Order.objects.filter(date__date=today).latest(
+                    'date')  # Предполагается, что в модели Order есть поле date
+            except Order.DoesNotExist:
+                order = None
+
+            if order:
+                # Преобразуем данные о сваях из JSON в словарь
+                piles_info = json.loads(order.piles_info)
+                materials_total = {
+                    'total_beton': order.total_beton,
+                    'total_wire_3': order.total_wire_3,
+                    'total_wire_4': order.total_wire_4,
+                    'total_wire_6': order.total_wire_6,
+                    'total_armature': order.total_armature
+                }
+            else:
+                piles_info = {}
+                materials_total = {}
             context = {
                 'latest_arrivals': latest_arrivals,
                 'latest_departures': latest_departures,
+                'piles_info': piles_info,
+                'materials_total': materials_total
             }
     return render(request, 'main.html', context)
 
@@ -116,28 +197,46 @@ def operation_arrival_view(request):
             form = OperationArrivalForm(request.POST)
             if form.is_valid():
                 operation_arrival = form.save(commit=False)
-
+                wirehouse, _ = WirehouseB.objects.get_or_create(id=1)
                 # Получаем последние цены материалов
+
                 last_beton = Beton.objects.last()
                 last_wire = Wire.objects.last()
+                last_wire4 = Wire4.objects.last()
+                last_wire6 = Wire6.objects.last()
                 last_armature = Armature.objects.last()
+
                 pile = form.cleaned_data['pile']
                 quantity = form.cleaned_data['quantity']
+                b_count = pile.price_beton * quantity
+                w3_count = pile.price_wire_3 * quantity
+                w4_count = pile.price_wire_4 * quantity
+                w6_count = pile.price_wire_6 * quantity
+                arm_count = pile.price_armature * quantity
+
+                wirehouse.wire3 -= w3_count
+                wirehouse.wire4 -= w4_count
+                wirehouse.wire6 -= w6_count
+                wirehouse.armature -= arm_count
+                wirehouse.beton -= b_count
+                wirehouse.save()
 
                 # Рассчитываем стоимость для каждого материала
-                beton_price = pile.price_beton * quantity * (last_beton.price if last_beton else 0)
-                wire_price = (pile.price_wire_3 + pile.price_wire_4 + pile.price_wire_6) * quantity * (
+                beton_price = b_count * (last_beton.price if last_beton else 0)
+                wire3_price = w3_count * (
                     last_wire.price if last_wire else 0)
-                armature_price = pile.price_armature * quantity * (last_armature.price if last_armature else 0)
+                wire4_price = w4_count * (last_wire4.price if last_wire4 else 0)
+                wire6_price = w6_count * (last_wire6.price if last_wire6 else 0)
+                armature_price = arm_count * (last_armature.price if last_armature else 0)
 
                 # Суммируем стоимости
-                total_price = beton_price + wire_price + armature_price+(quantity*115)
+                total_price = beton_price + wire3_price + wire4_price + wire6_price + armature_price + (quantity * 115)
 
                 # Сохраняем рассчитанную общую цену в экземпляре
                 operation_arrival.price = str(total_price)
 
                 pile.count += quantity
-                pile.defect += form.cleaned_data['defect']
+
                 pile.save()
 
                 operation_arrival.save()
@@ -151,7 +250,6 @@ def operation_arrival_view(request):
         return render(request, 'operation_arrival.html', {'form': form})
     else:
         return redirect('/')  # или на страницу ошибки
-
 
 
 def operation_departure_view(request):
@@ -174,7 +272,10 @@ def operation_departure_view(request):
     else:
         return redirect('/')
 
+
 from django.http import JsonResponse, HttpResponseRedirect
+
+
 def get_car_numbers(request):
     brand = request.GET.get('brand')
     cars = Car.objects.filter(model=brand).values('id', 'number')
@@ -185,7 +286,6 @@ def load_piles(request):
     name_pile_id = request.GET.get('name_pile_id')
     piles = Pile.objects.filter(name_id=name_pile_id).order_by('name')
     return JsonResponse(list(piles.values('id', 'size')), safe=False)
-
 
 
 def warehouse_statistics(request):
@@ -238,7 +338,6 @@ def operation_departure_confirm_view(request):
     if not request.user.userprofile.role.name == "Охранник":
         return redirect('/')
 
-
     departures = OperationDeparture.objects.filter(confirm=False)
 
     if request.method == "POST":
@@ -250,9 +349,6 @@ def operation_departure_confirm_view(request):
             return HttpResponseRedirect(reverse('main'))  # Перезагрузка страницы
 
     return render(request, 'main.html', {'departures': departures})
-
-
-
 
 
 def add_pile(request):
@@ -290,6 +386,8 @@ def confirm_operations(request):
         'confirmed_operations': confirmed_operations
     }
     return render(request, 'confirm_operations.html', context)
+
+
 def confirm_return_pile(request):
     if request.method == 'POST':
         return_pile_id = request.POST.get('return_pile_id')
@@ -313,6 +411,7 @@ def confirm_return_pile(request):
         'confirmed_return_piles': confirmed_return_piles
     }
     return render(request, 'confirm_return_pile.html', context)
+
 
 def search_departures(request):
     form = SearchForm(request.GET or None)
@@ -353,12 +452,14 @@ def search_by_date_range(request):
         date_to = form.cleaned_data.get('date_to')
         brigade = form.cleaned_data.get('brigade')
         departures_query = OperationDeparture.objects.all()
-        arrivals_query=None
+        arrivals_query = None
         returns_query = ReturnPile.objects.all()
-        beton_query=None
-        wire_query=None
-        armature_query=None
-        if date_from and date_to :
+        beton_query = None
+        wire_query = None
+        armature_query = None
+        order_query=None
+        if date_from and date_to:
+            order_query=Order.objects.filter(date__range=(date_from, date_to))
             departures_query = OperationDeparture.objects.filter(date__range=(date_from, date_to))
             arrivals_query = OperationArrival.objects.filter(date__range=(date_from, date_to))
             returns_query = ReturnPile.objects.filter(date__range=(date_from, date_to))
@@ -370,14 +471,94 @@ def search_by_date_range(request):
             returns_query = returns_query.filter(manager=manager)
         if brigade and not manager:
             departures_query = departures_query.filter(brigade=brigade)
-            returns_query=None
+            returns_query = None
         search_results = {
-                'departures': departures_query,
-                'arrivals': arrivals_query,
-                'returns': returns_query,
-                'beton': beton_query,
-                'wire': wire_query,
-                'armature': armature_query
+            'departures': departures_query,
+            'arrivals': arrivals_query,
+            'returns': returns_query,
+            'beton': beton_query,
+            'wire': wire_query,
+            'armature': armature_query,
+            'order':order_query
         }
 
     return render(request, 'search_by_date.html', {'form': form, 'search_results': search_results})
+
+
+from django.shortcuts import render
+from .models import Beton, Wire, Wire4, Wire6, Armature, WirehouseB
+
+
+def materials_overview(request):
+    # Получаем 5 последних записей для каждого типа материала
+    last_five_beton = Beton.objects.all().order_by('-date')[:5]
+    last_five_wire = Wire.objects.all().order_by('-date')[:5]
+    last_five_wire4 = Wire4.objects.all().order_by('-date')[:5]
+    last_five_wire6 = Wire6.objects.all().order_by('-date')[:5]
+    last_five_armature = Armature.objects.all().order_by('-date')[:5]
+
+    # Предполагаем, что у нас есть только один экземпляр WirehouseB
+    wirehouseb = WirehouseB.objects.first()
+
+    context = {
+        'last_five_beton': last_five_beton,
+        'last_five_wire': last_five_wire,
+        'last_five_wire4': last_five_wire4,
+        'last_five_wire6': last_five_wire6,
+        'last_five_armature': last_five_armature,
+        'wirehouseb': wirehouseb,
+    }
+    return render(request, 'materials_overview.html', context)
+
+
+from django.shortcuts import render
+from .models import Pile, Order
+
+
+def create_order(request):
+    if request.method == "POST":
+        piles = Pile.objects.filter(name__pile_type='жб')
+
+        total_beton = 0
+        total_wire_3 = 0
+        total_wire_4 = 0
+        total_wire_6 = 0
+        total_armature = 0
+        piles_info = {}  # Обновленный словарь для хранения информации о сваях
+
+        for pile in piles:
+            quantity = request.POST.get(f'pile_{pile.id}', 0)
+            if quantity:
+                quantity = int(quantity)
+                if quantity > 0:  # Добавляем в словарь только если количество больше 0
+                    pile_key = f"{pile.name.name} {pile.size}"  # Используем имя и размер для ключа
+                    piles_info[pile_key] = quantity
+                    total_beton += pile.price_beton * quantity
+                    total_wire_3 += pile.price_wire_3 * quantity
+                    total_wire_4 += pile.price_wire_4 * quantity
+                    total_wire_6 += pile.price_wire_6 * quantity
+                    total_armature += pile.price_armature * quantity
+
+        # Проверяем, были ли добавлены сваи в заказ
+        if piles_info:
+            order = Order(
+                piles_info=json.dumps(piles_info),  # Сериализация обновленного словаря в JSON строку
+                total_beton=total_beton,
+                total_wire_3=total_wire_3,
+                total_wire_4=total_wire_4,
+                total_wire_6=total_wire_6,
+                total_armature=total_armature
+            )
+            order.save()
+
+            return redirect('/')
+        else:
+            # Если сваи не были добавлены, возможно, стоит добавить сообщение об ошибке
+            return render(request, 'create_order.html', {'piles': piles, 'error': 'No piles were selected.'})
+
+    else:
+        piles = Pile.objects.filter(name__pile_type='жб')
+        return render(request, 'create_order.html', {'piles': piles})
+
+
+
