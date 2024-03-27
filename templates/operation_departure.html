@@ -1,156 +1,30 @@
 {% extends "index.html" %}
 {% block content %}
-<script>
-$(document).ready(function() {
-  $('#id_name_pile').change(function() {  // Обратите внимание на правильный ID для вашего поля выбора NamePile
-    var url = $('#OperationDepartureForm').attr('data-piles-url');  // Получаем URL из атрибута data-piles-url формы
-    var namePileId = $(this).val();  // Получаем выбранный ID NamePile
-
-    $.ajax({
-      url: url,
-      data: {
-        'name_pile_id': namePileId  // Передаем ID в запросе
-      },
-      success: function (data) {
-        $("#id_pile").html('');  // Очищаем текущие опции
-        data.forEach(function (pile) {
-          $("#id_pile").append(`<option value="${pile.id}">${pile.size}</option>`);  // Добавляем новые опции
-        });
-      }
-    });
-  });
-});
-
-</script>
-<script>
-$(document).ready(function() {
-
-  $('#id_quantity').addClass('required-field');
-  $('#id_defect').addClass('required-field');
-  $('#id_brigade').addClass('required-field');
-  $('#id_number_car').addClass('required-field');
-
-
-
-  function checkFormFields() {
-    var allFilled = true;
-    $('.required-field').each(function() {
-      if ($(this).val() === '') {
-        allFilled = false;
-        return false; // Выход из цикла
-      }
-    });
-
-
-    $('form#OperationDepartureForm button[type="submit"]').prop('disabled', !allFilled);
-  }
-
-
-  $(document).on('change keyup', '.required-field', checkFormFields);
-
-
-  checkFormFields();
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  document.querySelector("#id_type_brigade").addEventListener("change", function() {
-    var url = "{% url 'ajax_load_brigades' %}";
-    var type = this.value;
-
-    fetch(`${url}?type=${type}`)
-      .then(response => response.json())
-      .then(data => {
-        var brigadeSelect = document.querySelector("#id_brigade");
-        brigadeSelect.innerHTML = '';
-        data.forEach(function(b) {
-          var option = new Option(b.name, b.id, false, false);
-          brigadeSelect.add(option);
-        });
-      });
-  });
-
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const carBrandSelect = document.getElementById('id_car_brand'); // Убедитесь, что здесь правильный ID
-  carBrandSelect.addEventListener('change', function() {
-    const brand = this.value;
-    fetch(`/get-car-numbers/?brand=${brand}`) // Путь к вашему URL для AJAX запроса
-      .then(response => response.json())
-      .then(data => {
-        const numberCarSelect = document.getElementById('id_number_car'); // Убедитесь, что здесь правильный ID
-        numberCarSelect.innerHTML = ''; // Очищаем текущие опции
-        data.forEach(car => {
-          const option = new Option(car.number, car.id); // Создаем новую опцию
-          numberCarSelect.add(option); // Добавляем опцию в селектор
-        });
-      });
-  });
-});
-</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
-  document.addEventListener("DOMContentLoaded", function () {
-    // Получаем элементы формы
-    var pileSelect = document.getElementsByName('pile')[0];
-    var quantityInput = document.getElementsByName('quantity')[0];
-    var carSelect = document.getElementsByName('number_car')[0]; // Поле выбора автомобиля
-    var totalWeightDiv = document.getElementById('total_weight');
-    var alertDiv = document.getElementById('weight_alert'); // Предполагается, что есть div для сообщения
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('model').addEventListener('change', function() {
+        var model = this.value;
+        var numberSelect = document.getElementById('number_car');
+        numberSelect.innerHTML = '<option value="">--- Select Number ---</option>'; // Очистка списка номеров
 
-    // Функция обновления общего веса свай
-    function updateTotalWeight() {
-      var pileId = pileSelect.value;
-      var quantity = quantityInput.value;
-      fetch(`/operation/departure/ajax/load/pile/weight/?pile_id=${pileId}`)
-        .then(response => response.json())
-        .then(data => {
-          var totalWeight = data.weight * quantity; // Вес свай в кг
-          checkCarCapacity(totalWeight); // Проверяем грузоподъёмность автомобиля
-        })
-        .catch(error => console.error('Ошибка:', error));
-    }
-
-    // Функция для проверки грузоподъёмности автомобиля
-    function checkCarCapacity(pileWeight) {
-  var carId = carSelect.value;
-  if (!carId) {
-    console.log("Автомобиль не выбран.");
-    // Можно здесь же очистить или скрыть div с предупреждением, если это необходимо
-    alertDiv.textContent = "";
-    alertDiv.style.display = "none";
-    return; // Прерываем функцию, если автомобиль не выбран
-  }
-
-  fetch(`/operation/departure/ajax/load/car/weight/?car_id=${carId}`)
-    .then(response => {
-      if (response.ok) {
-        return response.json();
-      }
-      throw new Error('Network response was not ok.');
-    })
-    .then(data => {
-      var carWeight = data.weight * 1000; // Переводим тонны в кг
-      if (pileWeight > carWeight) {
-        alertDiv.textContent = "Общий вес свай превышает грузоподъёмность автомобиля!";
-        alertDiv.style.display = "block";
-      } else {
-        alertDiv.textContent = "";
-        alertDiv.style.display = "none";
-      }
-      totalWeightDiv.textContent = `Общий вес: ${pileWeight} кг`;
-    })
-    .catch(error => console.error('Ошибка:', error));
-}
-
-    // Добавляем слушатели событий
-    pileSelect.addEventListener("change", updateTotalWeight);
-    quantityInput.addEventListener("input", updateTotalWeight);
-    carSelect.addEventListener("change", () => updateTotalWeight()); // Обновляем при смене автомобиля
-  });
+        // Проверка, что модель была выбрана
+        if (model) {
+            // Отправка AJAX запроса на сервер для получения номеров машин
+            fetch(`/get-car-numbers/?model=${encodeURIComponent(model)}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Предполагается, что сервер возвращает объект JSON с массивом номеров в свойстве 'numbers'
+                    data.numbers.forEach(function(number) {
+                        var option = new Option(number, number);
+                        numberSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching car numbers:', error));
+        }
+    });
+});
 </script>
-
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -208,12 +82,54 @@ document.addEventListener("DOMContentLoaded", function() {
 </style>
   <h2>Отгрузка свай</h2>
 <a href="/" class="button">Назад</a>
-  <form id="OperationDepartureForm" data-piles-url="{% url 'ajax_load_piles' %}" method="post">
+<form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <div id="total_weight">Общий вес: 0 кг</div>
-    <div id="weight_alert" style="display: none; color: red; margin-top: 10px;"></div>
-    <button type="submit">Отправить</button>
+    <!-- Поля для других атрибутов OperationDeparture -->
+    <div>
+        <label for="manager">Лид:</label>
+        <input type="text" id="manager" name="manager">
+    </div>
+    <div>
+        <label for="description">Описание:</label>
+        <input type="text" id="description" name="description">
+    </div>
+    <!-- Выбор Car -->
+    <div>
+    <label for="model">Модель авто:</label>
+    <select id="model" name="model">
+    {% for value, display in car_type_choices %}
+    <option value="{{ value }}">{{ display }}</option>
+    {% endfor %}
+</select>
+</div>
 
-  </form>
+<!-- Выбор Number, изначально пуст -->
+<div>
+    <label for="number_car">Номер авто:</label>
+    <select id="number_car" name="number_car">
+        <option value="">--- Select Number ---</option>
+        <!-- Здесь будут добавлены номера динамически -->
+    </select>
+</div>
+    <!-- Выбор BrigadeWork -->
+    <div>
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade">
+            <option value="">--- Select Brigade ---</option>
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}">{{ brigade }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <!-- Динамическое создание полей для Pile -->
+    <h4>Сваи:</h4>
+    {% for pile in piles %}
+    <div>
+        <span>{{ pile.name.name }} {{ pile.size }}</span>
+        <input type="number" name="pile_{{ pile.id }}" min="0" value="0">
+    </div>
+    {% endfor %}
+    <button type="submit">Сохранить</button>
+</form>
+
 {%endblock%}

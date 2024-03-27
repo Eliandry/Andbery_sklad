@@ -112,43 +112,55 @@ h2::after {
         <thead>
             <tr>
                 <th>Дата</th>
-                <th>Название сваи</th>
+                <th>Сваи</th>
                 <th>Количество</th>
-                <th>Дефекты</th>
                 <th>Описание</th>
             </tr>
         </thead>
         <tbody>
             {% for arrival in latest_arrivals %}
                 <tr>
-                    <td>{{ arrival.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ arrival.pile.name }} {{ arrival.pile.size }}</td>
-                    <td>{{ arrival.quantity }}</td>
-                    <td>{{ arrival.defect }}</td>
-                    <td>{{ arrival.description }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.description }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
         <div class="latest-operations">
-    <h3>Последние операции отгрузки</h3>
+    <h2>Последние операции отгрузки</h2>
     <table>
         <thead>
             <tr>
                 <th>Дата</th>
-                <th>Название сваи</th>
+                <th>Cваи</th>
                 <th>Количество</th>
-                <th>Описание</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
             </tr>
         </thead>
         <tbody>
-            {% for departure in latest_departures %}
+            {% for arrival in latest_departures %}
                 <tr>
-                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ departure.pile.name }}</td>
-                    <td>{{ departure.quantity }}</td>
-                    <td>{{ departure.description }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
@@ -166,7 +178,7 @@ h2::after {
                 <th>Дата</th>
                 <th>Название сваи</th>
                 <th>Количество</th>
-                <th>Вес</th>
+
                 <th>Автомобиль</th>
                 <th>Бригада</th>
                 <th>Подтверждение</th>
@@ -175,15 +187,20 @@ h2::after {
         <tbody>
         <form method="post">
         {% csrf_token %}
-            {% for departure in departures %}
+            {% for arrival in departures %}
                 <tr>
-                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ departure.pile.name }} {{ arrival.pile.size }}</td>
-                    <td>{{ departure.quantity }}</td>
-                    <td>{{ departure.total_weight }} кг</td>
-                    <td>{{ departure.number_car }}</td>
-                    <td>{{ departure.brigade.name }}</td>
-                    <td><button  type="submit" name="departure_id" value="{{ departure.id }}">Подтвердить</button></td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        <td><button  type="submit" name="departure_id" value="{{ arrival.id }}">Подтвердить</button></td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </form>
@@ -203,12 +220,19 @@ h2::after {
             </tr>
         </thead>
         <tbody>
-            {% for departure in confirmed%}
+
+            {% for arrival in confirmed %}
                 <tr>
-                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ departure.pile.name }}</td>
-                    <td>{{ departure.quantity }}</td>
-                    <td><span class="checkmark">&#10003;</span></td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td><span class="checkmark">&#10003;</span></td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
@@ -226,7 +250,7 @@ h2::after {
             <a href="{% url 'order' %}" class="button">Разнарядка</a>
             <a href="{% url 'operation_arrival' %}" class="button">Производство свай</a>
             <a href="{% url 'classes' %}" class="button">Прибытие материалов</a>
-
+            <a href="{% url 'operation_departure' %}" class="button">Отгрузка свай</a>
             <a href="{% url 'search' %}" class="button">Поиск</a>
         </div>
         <div class="latest-operations">
@@ -254,59 +278,68 @@ h2::after {
     {% else %}
         <p>Нет свай.</p>
     {% endif %}
-
-
-    <h2>Последние операции прихода</h2>
+</div>
+<div class="latest-operations">
+    <h3>Последние операции прихода</h3>
     <table>
         <thead>
             <tr>
                 <th>Дата</th>
-                <th>Название сваи</th>
+                <th>Сваи</th>
                 <th>Количество</th>
-                <th>Дефекты</th>
-                <th>Описание</th>
-                <th>Стоимость</th>
+                <th>Бригада</th>
             </tr>
         </thead>
         <tbody>
             {% for arrival in latest_arrivals %}
                 <tr>
-                    <td>{{ arrival.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ arrival.pile.name }} {{ arrival.pile.size }}</td>
-                    <td>{{ arrival.quantity }}</td>
-                    <td>{{ arrival.defect }}</td>
-                    <td>{{ arrival.description }}</td>
-                    <td>{{ arrival.price }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-        <div class="latest-operations">
+<div class="latest-operations">
     <h2>Последние операции отгрузки</h2>
     <table>
         <thead>
             <tr>
                 <th>Дата</th>
-                <th>Название сваи</th>
+                <th>Cваи</th>
                 <th>Количество</th>
                 <th>Автомобиль</th>
-                <th>Подтверждение</th>
+                <th>Бригада</th>
             </tr>
         </thead>
         <tbody>
-            {% for departure in latest_departures%}
+            {% for arrival in latest_departures %}
                 <tr>
-                    <td>{{ departure.date|date:"d.m.Y H:i" }}</td>
-                    <td>{{ departure.pile.name }} {{ departure.pile.size }}</td>
-                    <td>{{ departure.quantity }}</td>
-                    <td>{{ departure.number_car }}</td>
-                    <td><span class="checkmark">&#10003;</span></td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
 {% endif %}
 
 {% endblock %}

@@ -56,85 +56,32 @@ class ArmatureForm(forms.ModelForm):
             'price': 'Цена',
         }
 
-
-class OperationArrivalForm(forms.ModelForm):
-    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
-
+class TubeForm(forms.ModelForm):
     class Meta:
-        model = OperationArrival
-        fields = ['name_pile', 'pile', 'quantity',  'description', 'brigade']
+        model = Tube
+        exclude = ['date']  # Исключаем поле даты
         labels = {
-            'name_pile': 'Название сваи',
-            'pile': 'Свая',
-            'quantity': 'Количество',
-            'description': 'Описание (если требуется)',
-            'brigade': 'Бригада',
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
         }
-        widgets = {
-            'name_pile': forms.Select(attrs={'class': 'name_pile'}),
-            'pile': forms.Select(attrs={'class': 'pile'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super(OperationArrivalForm, self).__init__(*args, **kwargs)
-        self.fields['pile'].queryset = Pile.objects.none()
-
-        if 'name_pile' in self.data:
-            try:
-                name_pile_id = int(self.data.get('name_pile'))
-                self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
-            except (ValueError, TypeError):
-                pass  # invalid input from the client; ignore and fallback to empty City queryset
-        elif self.instance.pk:
-            self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
-
-
-
-class OperationDepartureForm(forms.ModelForm):
-    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
-    type_brigade = forms.ChoiceField(choices=BrigadeWork.TYPE_CHOICES, label="Тип бригады", required=True)
-    car_brand = forms.ChoiceField(choices=Car.TYPE_CHOICES, label="Марка автомобиля", required=True)
-
+class ListForm(forms.ModelForm):
     class Meta:
-        model = OperationDeparture
-        fields = ['manager', 'name_pile', 'pile', 'quantity', 'description', 'car_brand', 'number_car', 'type_brigade','brigade']
+        model = Lists
+        exclude = ['date']  # Исключаем поле даты
         labels = {
-            'manager': 'Лид',
-            'name_pile': 'Название сваи',
-            'pile': 'Свая',
-            'quantity': 'Количество',
-            'description': 'Описание (если требуется)',
-            'car_brand': 'Марка автомобиля',
-            'number_car': 'Автомобиль',
-            'brigade': 'Бригада',
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
         }
 
-    def __init__(self, *args, **kwargs):
-        super(OperationDepartureForm, self).__init__(*args, **kwargs)
 
-        self.fields['pile'].queryset = Pile.objects.none()
-        self.order_fields(['name_pile', 'pile', 'quantity', 'description', 'type_brigade', 'brigade', 'number_car'])
-        if 'name_pile' in self.data:
-            try:
-                name_pile_id = int(self.data.get('name_pile'))
-                self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
 
-        super(OperationDepartureForm, self).__init__(*args, **kwargs)
 
-        self.fields['number_car'].queryset = Car.objects.none()
 
-        if 'car_brand' in self.data:
-            try:
-                car_brand = self.data.get('car_brand')
-                self.fields['number_car'].queryset = Car.objects.filter(model=car_brand).order_by('number')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['number_car'].queryset = self.instance.car_brand.car_set.order_by('number')
+
 
 
 class ReturnPileForm(forms.ModelForm):

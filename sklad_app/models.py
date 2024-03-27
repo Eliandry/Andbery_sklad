@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.forms import JSONField
 
 
 # Create your models here.
@@ -164,8 +165,7 @@ class UserProfile(models.Model):
 
 
 class OperationArrival(models.Model):
-    pile = models.ForeignKey(Pile, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    details = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     user = models.ManyToManyField(User)
     confirm_b = models.BooleanField(default=False)
@@ -177,8 +177,7 @@ class OperationArrival(models.Model):
 
 class OperationDeparture(models.Model):
     manager = models.CharField(max_length=500, default='123')
-    pile = models.ForeignKey(Pile, on_delete=models.CASCADE)
-    quantity = models.IntegerField()
+    details = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     user = models.ManyToManyField(User)
     description = models.CharField(blank=True, max_length=500)

@@ -120,12 +120,22 @@ $(document).ready(function() {
 </script>
 <h2>Производство свай</h2>
 <a href="/" class="button">Назад</a>
-<form id="operationArrivalForm" data-piles-url="{% url 'ajax_load_piles' %}" method="post">
+<form action="" method="post">
     {% csrf_token %}
-    <a href="{% url 'add_pile' %}">Добавить свой вариант</a>
-    <div class="form-group">
-        {{ form.as_p }}
+    <div>
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade">
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}">{{ brigade.name }}</option>
+            {% endfor %}
+        </select>
     </div>
+    {% for pile in piles %}
+    <div>
+        <span>{{ pile.name.name }} {{ pile.size }}</span>
+        <input type="number" name="pile_{{ pile.id }}" min="0" value="0">
+    </div>
+    {% endfor %}
     <button type="submit">Сохранить</button>
 </form>
 {%endblock%}

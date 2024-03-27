@@ -68,19 +68,15 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(OperationArrival)
 class OperationArrivalAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pile', 'quantity', 'date', 'confirm_b', 'defect', 'brigade')
-    list_filter = ('confirm_b', 'date', 'brigade')
-    search_fields = ('pile__name__name', 'brigade__name')
-    filter_horizontal = ('user',)
+    list_display = ('id',  'date')
+
 
 
 
 @admin.register(OperationDeparture)
 class OperationDepartureAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pile', 'quantity', 'date', 'confirm', 'number_car', 'brigade')
-    list_filter = ('confirm', 'date', 'brigade')
-    search_fields = ('pile__name__name', 'brigade__name')
-    filter_horizontal = ('user',)
+    list_display = ('id', 'date', 'confirm', 'number_car', 'brigade')
+
 
 
 @admin.register(ReturnPile)
