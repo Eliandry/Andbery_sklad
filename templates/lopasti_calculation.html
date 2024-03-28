@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    div {
+        margin-bottom: 10px;
+    }
+    label {
+        display: inline-block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 22px 0;
+        display: inline-block;
+        border: none;
+        background: #f1f1f1;
+    }
+    input[type="number"]:focus {
+        background-color: #ddd;
+        outline: none;
+    }
+    button[type="submit"] {
+        background-color: #a31717;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        opacity: 0.9;
+    }
+    button[type="submit"]:hover {
+        opacity:1;
+    }
+</style>
+
+<form method="post">
+    {% csrf_token %}
+    <h2>Разнарядка лопастей</h2>
+    <p>Укажите количество листов, которые будут потрачены:</p>
+    <div>
+        <label for="89">89 диаметр:</label>
+        <input type="number" id="89" name="89" min="0" value="0" placeholder="Введите количество">
+    </div>
+    <div>
+        <label for="108">108 диаметр:</label>
+        <input type="number" id="108" name="108" min="0" value="0" placeholder="Введите количество">
+    </div>
+    <div>
+        <label for="133">133 диаметр:</label>
+        <input type="number" id="133" name="133" min="0" value="0" placeholder="Введите количество">
+    </div>
+
+    <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

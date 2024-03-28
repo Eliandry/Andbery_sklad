@@ -247,6 +247,7 @@ h2::after {
 {% if user.is_authenticated and user.userprofile.role.name == "Производство" %}
 
         <div class="buttons-container">
+            <a href="{% url 'calc_lop' %}" class="button">Разнарядка лопастей</a>
             <a href="{% url 'order' %}" class="button">Разнарядка</a>
             <a href="{% url 'operation_arrival' %}" class="button">Производство свай</a>
             <a href="{% url 'classes' %}" class="button">Прибытие материалов</a>

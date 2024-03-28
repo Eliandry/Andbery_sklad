@@ -46,33 +46,7 @@ def add_wire(request):
     else:
         form = WireForm()
     return render(request, 'add_wire.html', {'form': form})
-def add_tube(request):
-    if request.method == "POST":
-        form = TubeForm(request.POST)
-        if form.is_valid():
-            new_wire = form.save(commit=False)
-            wirehouse, _ = WirehouseV.objects.get_or_create(id=1)
-            wirehouse.tube += new_wire.count
-            wirehouse.save()
-            new_wire.save()
-            return redirect('/')
-    else:
-        form = WireForm()
-    return render(request, 'add_wire.html', {'form': form})
 
-def add_lists(request):
-    if request.method == "POST":
-        form = ListForm(request.POST)
-        if form.is_valid():
-            new_wire = form.save(commit=False)
-            wirehouse, _ = WirehouseV.objects.get_or_create(id=1)
-            wirehouse.lists += new_wire.count
-            wirehouse.save()
-            new_wire.save()
-            return redirect('/')
-    else:
-        form = WireForm()
-    return render(request, 'add_wire.html', {'form': form})
 
 
 def add_wire4(request):
@@ -716,3 +690,94 @@ def create_order(request):
 
 
 
+
+
+
+
+
+#Винты
+def materialsV_overview(request):
+    # Получаем 5 последних записей для каждого типа материала
+
+    # Предполагаем, что у нас есть только один экземпляр WirehouseB
+    wirehousev = WirehouseV.objects.first()
+
+    context = {
+
+        'wirehousev': wirehousev,
+    }
+    return render(request, 'materials_v.html', context)
+
+def add_tube(request):
+    if request.method == "POST":
+        form = TubeForm(request.POST)
+        if form.is_valid():
+            new_wire = form.save(commit=False)
+            wirehouse, _ = WirehouseV.objects.get_or_create(id=1)
+            wirehouse.tube += new_wire.count
+            wirehouse.save()
+            new_wire.save()
+            return redirect('/')
+    else:
+        form = WireForm()
+    return render(request, 'add_tube.html', {'form': form})
+
+def add_lists(request):
+    if request.method == "POST":
+        form = ListForm(request.POST)
+        if form.is_valid():
+            new_wire = form.save(commit=False)
+            wirehouse, _ = WirehouseV.objects.get_or_create(id=1)
+            wirehouse.lists += new_wire.count
+            wirehouse.save()
+            new_wire.save()
+            return redirect('/')
+    else:
+        form = WireForm()
+    return render(request, 'add_list.html', {'form': form})
+
+
+
+
+
+def calculate_lopasti(request):
+    if request.method == 'POST':
+        details = []
+        total_lopasti = 0
+        price_per_unit = 0
+        wirehouse_v, _ = WirehouseV.objects.get_or_create(id=1)
+        # Соответствие между диаметрами листов и количеством лопастей, которое можно получить
+        lopasti_per_sheet = {89: 66, 108: 56, 133: 39}
+
+        for diameter, multiplier in lopasti_per_sheet.items():
+            sheet_count = int(request.POST.get(str(diameter), 0))
+            if sheet_count > 0:
+                lopasti_count = sheet_count * multiplier
+                total_lopasti += lopasti_count
+
+                # Находим последний добавленный лист соответствующего размера и его цену
+                last_list = Lists.objects.last()
+                if last_list:
+                    price_per_unit = round(last_list.price / multiplier, 2)
+
+                if diameter == 89:
+                    wirehouse_v.lopasti89 += lopasti_count
+                elif diameter == 108:
+                    wirehouse_v.lopasti108 += lopasti_count
+                elif diameter == 133:
+                    wirehouse_v.lopasti133 += lopasti_count
+
+                    # Уменьшаем количество листов на складе
+                wirehouse_v.lists -= sheet_count
+                details.append({
+                    "diameter": diameter,
+                    "lopasti_count": lopasti_count,
+                    "price_per_unit": price_per_unit
+                })
+        wirehouse_v.save()
+        # Сохраняем результат в модели Lopasti
+        Lopasti.objects.create(details=json.dumps(details))
+
+        return redirect('/')  # Измените на ваш URL для перенаправления
+    else:
+        return render(request, 'lopasti_calculation.html')  # Измените на ваш шаблон ввода данных

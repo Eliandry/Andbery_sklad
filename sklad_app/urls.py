@@ -24,6 +24,10 @@ urlpatterns = [
     path('add_armature/', add_armature, name='add_armature'),
     path('search/', search_by_date_range, name='search'),
     path('materials_overview/',materials_overview,name='materials_overview'),
+    path('materialsV_overview/',materialsV_overview,name='materialsV_overview'),
     path('prod_class/',classif,name='classes'),
-    path('order/',create_order,name='order')
+    path('order/',create_order,name='order'),
+    path('add_lists/', add_lists, name='add_lists'),
+    path('add_tube/', add_tube, name='add_tube'),
+    path('calc_lop/', calculate_lopasti, name='calc_lop'),
 ]

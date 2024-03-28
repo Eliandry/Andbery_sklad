@@ -79,7 +79,9 @@ class WirehouseB(models.Model):
     wire6 = models.IntegerField(default=0)
 
 class WirehouseV(models.Model):
-    lopasti = models.IntegerField(default=0)
+    lopasti89 = models.IntegerField(default=0)
+    lopasti108 = models.IntegerField(default=0)
+    lopasti133 = models.IntegerField(default=0)
     lists = models.IntegerField(default=0)
     tube = models.IntegerField(default=0)
 
@@ -131,9 +133,9 @@ class Lists(models.Model):
     price = models.IntegerField()
 
 class Lopasti(models.Model):
-    count = models.IntegerField()
+    details = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
-    price = models.IntegerField()
+
 
 class Pile(models.Model):
     name = models.ForeignKey(NamePile, on_delete=models.CASCADE)
