@@ -1,0 +1,37 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Возврат свай</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Бригада</th>
+            <th>Описание</th>
+            <th>Детали</th>
+            <th>Действие</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for return_pile in return_piles_list %}
+        <tr>
+            <td>{{ return_pile.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ return_pile.brigade.name }}</td>
+            <td>{{ return_pile.description }}</td>
+            <td>
+                {% for detail in return_pile.details_dict.values %}
+                <div>{{ detail.name }} {{ detail.size }}: {{ detail.quantity }}</div>
+                {% endfor %}
+            </td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_pile_id" value="{{ return_pile.id }}">
+                    <button type="submit">Подтвердить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

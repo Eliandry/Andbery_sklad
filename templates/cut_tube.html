@@ -1,0 +1,117 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+    #formContainer {
+        margin-bottom: 20px;
+    }
+    .formGroup {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-bottom: 10px;
+        background-color: #f9f9f9;
+    }
+    .formGroup strong {
+        display: block;
+        margin-bottom: 10px;
+    }
+    .formGroup input[type="number"] {
+        width: 100px;
+        margin-right: 10px;
+        margin-bottom: 5px;
+    }
+    #addForm, button[type="submit"] {
+        background-color: #e30b0b;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    #addForm:hover, button[type="submit"]:hover {
+        background-color: #ad3939;
+    }
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<a href="{% url 'vint' %}" class="button">Назад</a>
+<h3>Выберите параметры трубы и добавьте способы резки:</h3>
+
+<form id="tubeForm" method="post">
+    {% csrf_token %}
+    <div id="formContainer">
+        <div class="formGroup">
+            <label for="thickness_0">Выберите толщину листа:</label>
+                <select name="thickness_0" id="thickness_0">
+                <option value="4">4 мм</option>
+                <option value="5">5 мм</option>
+            </select>
+            <label for="tube_diameter_0">Труба:</label>
+            <select name="tube_diameter_0" class="tube_diameter" id="tube_diameter_0">
+                <option value="89">89</option>
+                <option value="108">108</option>
+                <option value="133">133</option>
+            </select>
+            <br>
+            <label for="tube_thickness_0">Толщина:</label>
+            <select name="tube_thickness_0" class="tube_thickness" id="tube_thickness_0">
+                <option value="3.5">3.5</option>
+                <option value="4">4</option>
+            </select>
+            <br>
+
+            <label>Разрез 1 (2.5-2.5-2.5-2.5-2.5): <input type="number" name="cut_1_0" min="0" value="0"></label><br>
+            <label>Разрез 2 (2.5-2.5-3.5-3.5): <input type="number" name="cut_2_0" min="0" value="0"></label><br>
+            <label>Разрез 3 (4.5-4.5-3): <input type="number" name="cut_3_0" min="0" value="0"></label><br>
+            <label>Разрез 4 (3-3-3-3): <input type="number" name="cut_4_0" min="0" value="0"></label><br>
+            <label>Разрез 5 (4-4-4): <input type="number" name="cut_5_0" min="0" value="0"></label><br>
+            <label>Разрез 6 (5-5-2): <input type="number" name="cut_6_0" min="0" value="0"></label><br>
+            <label>Разрез 7 (5-3.5-3.5): <input type="number" name="cut_7_0" min="0" value="0"></label><br>
+        </div>
+    </div>
+    <button type="button" id="addForm">Добавить еще вариант</button>
+    <button type="submit">Сохранить</button>
+</form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let formIndex = 1;
+
+    document.querySelector('#addForm').addEventListener('click', function() {
+        const formGroup = document.createElement('div');
+        formGroup.classList.add('formGroup');
+        formGroup.innerHTML = `
+            <label for="thickness_${formIndex}">Выберите толщину листа:</label>
+                <select name="thickness_${formIndex}" id="thickness_${formIndex}">
+                <option value="4">4 мм</option>
+                <option value="5">5 мм</option>
+            </select>
+            <label for="tube_diameter_${formIndex}">Труба:</label>
+            <select name="tube_diameter_${formIndex}" class="tube_diameter" id="tube_diameter_${formIndex}">
+                <option value="89">89</option>
+                <option value="108">108</option>
+                <option value="133">133</option>
+            </select>
+            <br>
+            <label for="tube_thickness_${formIndex}">Толщина:</label>
+            <select name="tube_thickness_${formIndex}" class="tube_thickness" id="tube_thickness_${formIndex}">
+                <option value="3.5">3.5</option>
+                <option value="4">4</option>
+            </select>
+            <br>
+
+            <label>Разрез 1 (2.5-2.5-2.5-2.5-2.5): <input type="number" name="cut_1_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 2 (2.5-2.5-3.5-3.5): <input type="number" name="cut_2_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 3 (4.5-4.5-3): <input type="number" name="cut_3_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 4 (3-3-3-3): <input type="number" name="cut_4_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 5 (4-4-4): <input type="number" name="cut_5_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 6 (5-5-2): <input type="number" name="cut_6_${formIndex}" min="0" value="0"></label><br>
+            <label>Разрез 7 (5-3.5-3.5): <input type="number" name="cut_7_${formIndex}" min="0" value="0"></label><br>
+        `;
+        document.querySelector('#formContainer').appendChild(formGroup);
+
+        formIndex++;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Список непотвержденных деталей отправки</h2>
+<table>
+    <tr>
+        <th>Дата</th>
+        <th>Бригада</th>
+        <th>Детали отправки</th>
+        <th>Действие</th>
+    </tr>
+    {% for detail in send_details %}
+    <tr>
+        <td>{{ detail.operation.date|date:"d.m.Y H:i" }}</td>
+        <td>{{ detail.operation.brigade.name }}</td>
+        <td>
+            {% for item in detail.piles_info %}
+                {{ item.pile.name.name }} {{ item.pile.size }} - {{ item.quantity }}<br>
+            {% endfor %}
+        </td>
+        <td>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="detail_id" value="{{ detail.id }}">
+                <button type="submit">Подтвердить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

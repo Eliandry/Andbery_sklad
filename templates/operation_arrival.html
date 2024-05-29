@@ -55,6 +55,18 @@
         display: block;
         width: 100%;
     }
+    .button {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 20px;
+    background-image: linear-gradient(to right, #f44336, #d32f2f); /* Градиентный фон */
+    color: white;
+    text-decoration: none;
+    border: none; /* Убираем стандартную рамку */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Добавляем тень для эффекта глубины */
+    transition: all 0.3s ease; /* Плавные переходы для фона, тени и трансформации */
+}
 </style>
 <script>
 $(document).ready(function() {
@@ -107,12 +119,24 @@ $(document).ready(function() {
 });
 </script>
 <h2>Производство свай</h2>
-<form id="operationArrivalForm" data-piles-url="{% url 'ajax_load_piles' %}" method="post">
+<a href="{% url 'jb' %}" class="button">Назад</a>
+<form action="" method="post">
     {% csrf_token %}
-    <a href="{% url 'add_pile' %}">Добавить свой вариант</a>
-    <div class="form-group">
-        {{ form.as_p }}
+    <div>
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade">
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}">{{ brigade.name }}</option>
+            {% endfor %}
+        </select>
     </div>
+    <p>Введите количество форм:</p>
+    {% for pile in piles %}
+    <div class="pile-input">
+        <label for="pile_{{ pile.id }}">{{ pile.name.name }} {{ pile.size }}</label>
+        <input type="number" id="pile_{{ pile.id }}" name="pile_{{ pile.id }}" min="0" value="" placeholder="Кол-во форм">
+    </div>
+    {% endfor %}
     <button type="submit">Сохранить</button>
 </form>
 {%endblock%}

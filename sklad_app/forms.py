@@ -1,7 +1,7 @@
 from .models import OperationArrival, BrigadeWork, Car
 from django import forms
 from .models import OperationDeparture, NamePile, Pile, ReturnPile
-from .models import Beton, Wire, Armature
+from .models import *
 
 
 class BetonForm(forms.ModelForm):
@@ -9,10 +9,10 @@ class BetonForm(forms.ModelForm):
         model = Beton
         exclude = ['date']  # Исключаем поле даты
         labels = {
-            'count': 'Количество',
+            'count': 'Количество в куб',
             'company_sell': 'Компания-продавец',
             'company_buy': 'Компания-покупатель',
-            'price': 'Цена',
+            'price': 'Цена за куб',
         }
 
 class WireForm(forms.ModelForm):
@@ -23,127 +23,83 @@ class WireForm(forms.ModelForm):
             'count': 'Количество',
             'company_sell': 'Компания-продавец',
             'company_buy': 'Компания-покупатель',
-            'price': 'Цена',
+            'price': 'Цена за кг',
         }
-
-class ArmatureForm(forms.ModelForm):
+class WireForm4(forms.ModelForm):
     class Meta:
-        model = Armature
+        model = Wire4
         exclude = ['date']  # Исключаем поле даты
         labels = {
             'count': 'Количество',
             'company_sell': 'Компания-продавец',
             'company_buy': 'Компания-покупатель',
-            'price': 'Цена',
+            'price': 'Цена за кг',
         }
-
-
-class OperationArrivalForm(forms.ModelForm):
-    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
-
+class WireForm6(forms.ModelForm):
     class Meta:
-        model = OperationArrival
-        fields = ['name_pile', 'pile', 'quantity', 'defect', 'description', 'brigade']
+        model = Wire6
+        exclude = ['date']  # Исключаем поле даты
         labels = {
-            'name_pile': 'Название сваи',
-            'pile': 'Свая',
-            'quantity': 'Количество',
-            'defect': 'Дефекты',
-            'description': 'Описание (если требуется)',
-            'brigade': 'Бригада',
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена за кг',
         }
-        widgets = {
-            'name_pile': forms.Select(attrs={'class': 'name_pile'}),
-            'pile': forms.Select(attrs={'class': 'pile'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super(OperationArrivalForm, self).__init__(*args, **kwargs)
-        self.fields['pile'].queryset = Pile.objects.none()
-
-        if 'name_pile' in self.data:
-            try:
-                name_pile_id = int(self.data.get('name_pile'))
-                self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
-            except (ValueError, TypeError):
-                pass  # invalid input from the client; ignore and fallback to empty City queryset
-        elif self.instance.pk:
-            self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
-
-
-
-class OperationDepartureForm(forms.ModelForm):
-    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
-    type_brigade = forms.ChoiceField(choices=BrigadeWork.TYPE_CHOICES, label="Тип бригады", required=True)
-    car_brand = forms.ChoiceField(choices=Car.TYPE_CHOICES, label="Марка автомобиля", required=True)
-
+class ArmatureForm(forms.ModelForm):
     class Meta:
-        model = OperationDeparture
-        fields = ['manager', 'name_pile', 'pile', 'quantity', 'description', 'car_brand', 'number_car', 'type_brigade','brigade']
+        model = Armature
+        exclude = ['date']  # Исключаем поле даты
         labels = {
-            'manager': 'Лид',
-            'name_pile': 'Название сваи',
-            'pile': 'Свая',
-            'quantity': 'Количество',
-            'description': 'Описание (если требуется)',
-            'car_brand': 'Марка автомобиля',
-            'number_car': 'Автомобиль',
-            'brigade': 'Бригада',
+            'count': 'Количество в кг',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена за кг',
         }
-
-    def __init__(self, *args, **kwargs):
-        super(OperationDepartureForm, self).__init__(*args, **kwargs)
-
-        self.fields['pile'].queryset = Pile.objects.none()
-        self.order_fields(['name_pile', 'pile', 'quantity', 'description', 'type_brigade', 'brigade', 'number_car'])
-        if 'name_pile' in self.data:
-            try:
-                name_pile_id = int(self.data.get('name_pile'))
-                self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
-
-        super(OperationDepartureForm, self).__init__(*args, **kwargs)
-
-        self.fields['number_car'].queryset = Car.objects.none()
-
-        if 'car_brand' in self.data:
-            try:
-                car_brand = self.data.get('car_brand')
-                self.fields['number_car'].queryset = Car.objects.filter(model=car_brand).order_by('number')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['number_car'].queryset = self.instance.car_brand.car_set.order_by('number')
-
-
-class ReturnPileForm(forms.ModelForm):
-    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
-
+class Armature10Form(forms.ModelForm):
     class Meta:
-        model = ReturnPile
-        fields = ['name_pile', 'pile', 'quantity', 'description']
+        model = Armature10
+        exclude = ['date']  # Исключаем поле даты
         labels = {
-            'name_pile': 'Название сваи',
-            'pile': 'Свая',
-            'quantity': 'Количество',
-            'description': 'Описание (если требуется)',
+            'count': 'Количество в кг',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена за кг',
         }
 
-    def __init__(self, *args, **kwargs):
-        super(ReturnPileForm, self).__init__(*args, **kwargs)
-        self.fields['pile'].queryset = Pile.objects.none()
+#class OperationArrivalForm(forms.ModelForm):
+#    name_pile = forms.ModelChoiceField(queryset=NamePile.objects.all(), label="Название сваи", required=True)
+#
+#    class Meta:
+ #       model = OperationArrival
+ #       fields = ['name_pile', 'pile', 'quantity', 'description', 'brigade']
+  #      labels = {
+   #         'name_pile': 'Название сваи',
+    #        'pile': 'Свая',
+    #        'quantity': 'Количество',
+     #       'description': 'Описание (если требуется)',
+      #      'brigade': 'Бригада',
+       # }
+        #widgets = {
+    #        'name_pile': forms.Select(attrs={'class': 'name_pile'}),
+     #       'pile': forms.Select(attrs={'class': 'pile'}),
+      #  }
 
-        if 'name_pile' in self.data:
-            try:
-                name_pile_id = int(self.data.get('name_pile'))
-                self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
-            except (ValueError, TypeError):
-                pass
-        elif self.instance.pk:
-            self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
+#    def __init__(self, *args, **kwargs):
+ #       super(OperationArrivalForm, self).__init__(*args, **kwargs)
+  #      self.fields['pile'].queryset = Pile.objects.none()
+#
+ #       if 'name_pile' in self.data:
+  #          try:
+   #             name_pile_id = int(self.data.get('name_pile'))
+    #            self.fields['pile'].queryset = Pile.objects.filter(name_id=name_pile_id).order_by('name')
+     #       except (ValueError, TypeError):
+      #          pass  # invalid input from the client; ignore and fallback to empty City queryset
+       # elif self.instance.pk:
+        #    self.fields['pile'].queryset = self.instance.name_pile.pile_set.order_by('name')
+
+
+
+
 
 
 class SearchForm(forms.Form):
@@ -179,3 +135,97 @@ class NamePileAndPileForm(forms.Form):
 class DateRangeForm(forms.Form):
     date_from = forms.DateField(required=False, label='Дата с', widget=forms.DateInput(attrs={'type': 'date'}))
     date_to = forms.DateField(required=False, label='Дата по', widget=forms.DateInput(attrs={'type': 'date'}))
+
+
+
+
+class TubeForm(forms.ModelForm):
+    class Meta:
+        model = Tube
+        exclude = ['date','unit_price']
+        labels = {
+            'count': 'Кг 89 трубы',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Стоимость',
+        }
+class TubeForm108(forms.ModelForm):
+    class Meta:
+        model = Tube108
+        exclude = ['date','unit_price']  # Исключаем поле даты
+        labels = {
+            'count': 'Кг 108 трубы',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Стоимость',
+        }
+class TubeForm108_2(forms.ModelForm):
+    class Meta:
+        model = Tube108_2
+        exclude = ['date','unit_price']
+        labels = {
+            'count': 'Кг 108*3.5 трубы',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Стоимость',
+        }
+class TubeForm133(forms.ModelForm):
+    class Meta:
+        model = Tube133
+        exclude = ['date','unit_price']
+        labels = {
+            'count': 'Кг 133 трубы',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Стоимость',
+        }
+class ListForm(forms.ModelForm):
+    class Meta:
+        model = Lists
+        fields = ['count', 'company_sell', 'company_buy', 'price']
+        labels = {
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
+        }
+
+class List5Form(forms.ModelForm):
+    class Meta:
+        model = Lists5
+        fields = ['count', 'company_sell', 'company_buy', 'price']
+        labels = {
+            'count': 'Количество',
+            'company_sell': 'Компания-продавец',
+            'company_buy': 'Компания-покупатель',
+            'price': 'Цена',
+        }
+
+class ExportForm(forms.Form):
+    date_from = forms.DateField(label='Дата с', widget=forms.DateInput(attrs={'type': 'date'}))
+    date_to = forms.DateField(label='Дата по', widget=forms.DateInput(attrs={'type': 'date'}))
+    brigade = forms.ModelChoiceField(label='Бригада', queryset=BrigadeWork.objects.all(), required=False)
+
+class ExportArrForm(forms.Form):
+    date_from = forms.DateField(label='Дата с', widget=forms.DateInput(attrs={'type': 'date'}))
+    date_to = forms.DateField(label='Дата по', widget=forms.DateInput(attrs={'type': 'date'}))
+    brigade = forms.ModelChoiceField(label='Бригада', queryset=Brigade.objects.all(), required=False)
+
+from django.forms import ModelChoiceField, DateField
+
+class MaterialExportForm(forms.Form):
+    MATERIAL_CHOICES = [
+        ('beton', 'Бетон'),
+        ('wire', 'Проволка 3мм'),
+        ('wire4', 'Проволка 4мм'),
+        ('wire6', 'Проволка 6мм'),
+        ('armature', 'Арматура 8мм'),
+        ('armature10', 'Арматура 10мм')
+    ]
+    material = forms.ChoiceField(choices=MATERIAL_CHOICES, label="Select Material")
+    date_from = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="From")
+    date_to = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="To")
+
+class TextProcessingForm(forms.Form):
+    text_input = forms.CharField(label='Введите смс', widget=forms.Textarea)
+    brigade = forms.ModelChoiceField(queryset=BrigadeWork.objects.all(), label='Выберите бригаду', required=False)

@@ -1,0 +1,40 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<a href="/" class="button">Назад</a>
+<h2>Операции прихода</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Описание</th>
+            <th>Сваи</th>
+            <th>Подтверждение</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for operation in operations %}
+        <tr>
+            <td>{{ operation.date }}</td>
+            <td>{{ operation.description }}</td>
+            <td>
+                {% for pile_info in operation.piles_info %}
+                <p>{{ pile_info.name }} {{ pile_info.size }}, Количество: {{ pile_info.quantity }}</p>
+                {% endfor %}
+            </td>
+            <td>
+                {% if not operation.confirm_b %}
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="operation_id" value="{{ operation.id }}">
+                    <button type="submit">Подтвердить</button>
+                </form>
+                {% else %}
+                Подтверждено
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

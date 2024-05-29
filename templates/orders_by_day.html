@@ -1,0 +1,53 @@
+{% extends "index.html" %}
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  tr:nth-child(even) {background-color: #f9f9f9;}
+{% block content %}
+<a href="{% url 'jb' %}" class="button">Назад</a>
+<h2>Разнарядки по дням</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Общее количество бетона</th>
+            <th>Общее количество проволоки 3мм</th>
+            <th>Общее количество проволоки 4мм</th>
+            <th>Общее количество проволоки 6мм</th>
+            <th>Общее количество арматуры</th>
+            <th>Сваи</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ order.total_beton }}</td>
+            <td>{{ order.total_wire_3 }}</td>
+            <td>{{ order.total_wire_4 }}</td>
+            <td>{{ order.total_wire_6 }}</td>
+            <td>{{ order.total_armature }}</td>
+            <td>
+                <ul style="list-style-type:none; padding:0; margin:0;">
+                    {% for name, quantity in order.piles_info.items %}
+                    <li>{{ name }}: {{ quantity }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

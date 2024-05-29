@@ -1,0 +1,8 @@
+{% extends 'index.html' %}
+{% block content %}
+<h2>Экспорт операций прихода</h2>
+<form method="get" action="{% url 'export_operation_arrivals_to_excel' %}">
+    {{ form.as_p }}
+    <button type="submit">Экспортировать</button>
+</form>
+{% endblock %}

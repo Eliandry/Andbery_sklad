@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Редактирование долга для бригады {{ debt.brigade.name }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <table>
+        <thead>
+            <tr>
+                <th>Свая</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pile, quantity in piles.items %}
+            <tr>
+                <td>{{ pile.name.name }} {{ pile.size }}</td>
+                <td>
+                    <input type="number" name="quantity_{{ pile.id }}" value="{{ quantity }}" min="0">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

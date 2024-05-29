@@ -1,0 +1,12 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Список бригад</h2>
+<ul>
+    {% for brigade in brigades %}
+    <li>
+        <a href="{% url 'debt_detail' brigade.id %}">{{ brigade.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

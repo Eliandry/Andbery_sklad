@@ -1,0 +1,8 @@
+{% extends "index.html" %}
+{% block content %}
+<h2>Скачать материалы</h2>
+<form method="get" action="{% url 'export_material_data' %}">
+    {{ form.as_p }}
+    <button type="submit">Скачать</button>
+</form>
+{% endblock %}

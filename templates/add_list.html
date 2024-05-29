@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h2>Добавление нового листа</h2>
+<form method="post" action="">
+    {% csrf_token %}
+    <label for="thickness">Выберите толщину листа:</label>
+    <select name="thickness" id="thickness">
+        <option value="4">4 мм</option>
+        <option value="5">5 мм</option>
+    </select><br>
+
+    <label for="count">Количество:</label>
+    <input type="number" id="count" name="count" required><br>
+
+    <label for="company_sell">Компания-продавец:</label>
+    <input type="text" id="company_sell" name="company_sell" required><br>
+
+    <label for="company_buy">Компания-покупатель:</label>
+    <input type="text" id="company_buy" name="company_buy" required><br>
+
+    <label for="price">Цена:</label>
+    <input type="number" id="price" name="price" required><br>
+
+    <button type="submit">Добавить</button>
+</form>
+{% endblock %}

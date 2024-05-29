@@ -16,6 +16,7 @@
   }
   tr:nth-child(even) {background-color: #f9f9f9;}
 </style>
+<a href="/" class="button">Назад</a>
 <h2>Поиск по диапазону дат</h2>
 <form method="get" action="{% url 'search' %}">
     {{ form.as_p }}
@@ -28,55 +29,61 @@
         <table>
             <tr>
                 <th>Дата</th>
-                <th>Лид</th>
                 <th>Свая</th>
                 <th>Количество</th>
-
-                <th>Описание</th>
+                <th>Лид</th>
                 <th>Автомобиль</th>
                 <th>Бригада</th>
             </tr>
-            {% for item in search_results.departures %}
-            <tr>
-                <td>{{ item.date|date:"d-m-Y" }}</td>
-                <td>{{ item.manager }}</td>
-                <td>{{ item.pile.name }}</td>
-                <td>{{ item.quantity }}</td>
-
-                <td>{{ item.description }}</td>
-                <td>{{ item.number_car.model }} - {{ item.number_car.number }}</td>
-                <td>{{ item.brigade.name }}</td>
-            </tr>
+            {% for arrival in search_results.departures %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
             {% endfor %}
         </table>
     {% endif %}
 
     {% if search_results.arrivals %}
-    <h3>Приходы</h3>
+    <div class="latest-operations">
+    <h3>Последние операции прихода</h3>
     <table>
-        <tr>
-            <th>Дата</th>
-            <th>Свая</th>
-            <th>Количество</th>
-
-            <th>Описание</th>
-            <th>Дефекты</th>
-
-            <th>Бригада</th>
-        </tr>
-        {% for item in search_results.arrivals %}
-        <tr>
-            <td>{{ item.date|date:"d-m-Y" }}</td>
-            <td>{{ item.pile.name }}</td>
-            <td>{{ item.quantity }}</td>
-
-            <td>{{ item.description }}</td>
-            <td>{{ item.defect }}</td>
-
-            <td>{{ item.brigade.name }}</td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Сваи</th>
+                <th>Количество</th>
+                <th>Бригада</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in search_results.arrivals %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
+</div>
 {% endif %}
 {% if search_results.returns %}
     <h3>Возвраты</h3>

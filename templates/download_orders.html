@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Скачать разнарядки</h2>
+<form method="post" action="{% url 'download_orders' %}">
+    {% csrf_token %}
+    <label for="date_from">Дата с:</label>
+    <input type="date" id="date_from" name="date_from" required>
+
+    <label for="date_to">Дата по:</label>
+    <input type="date" id="date_to" name="date_to" required>
+
+    <button type="submit">Скачать</button>
+</form>
+{% endblock %}

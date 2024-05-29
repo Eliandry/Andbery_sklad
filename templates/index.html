@@ -90,14 +90,21 @@
 <body>
     <div class="header">
 
-        <a href="/"><img src="{% static 'logo.png' %}" alt="Логотип" class="logo"></a>
+        <a href="/"><img src="{% static 'logo.png' %}"  class="logo"></a>
          <h1>
             <span class="gradient-text">Эндбери</span><span class="black">С</span>клад
         </h1>
     </div>
     <div class="nav">
         {% if user.is_authenticated %}
-            <a href="{% url 'warehouse_statistics' %} " >Статистика склада</a>
+            {% if user.userprofile.role.name == "Производство" or user.userprofile.role.name == "Кладовщик" %}
+                <a href="{% url 'ware' %} " >Склады свай</a>
+                {% if user.userprofile.role.name == "Производство" %}
+                    <a href="{% url 'orders_by_day' %}" class="button">Разнарядки</a>
+                {% endif %}
+                <a href="{% url 'mat' %} " >Склады материалов</a>
+            {% endif %}
+
             <span style="color: white;">Привет, {{ user.username }}!</span> <!-- Белый текст для лучшего контраста на красном фоне -->
             <a href="{% url 'logout' %}">Выйти</a>
         {% else %}

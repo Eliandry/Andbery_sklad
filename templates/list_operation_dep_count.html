@@ -1,0 +1,87 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Список операций списания материалов</h2>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+    .completed {
+        color: green;
+        font-weight: bold;
+    }
+</style>
+
+<table>
+    <tr>
+        <th>Лид</th>
+        <th>Детали операции</th>
+        <th>Статус</th>
+        <th>Действие</th>
+    </tr>
+    {% for operation in operations %}
+    <tr>
+        <td>{{ operation.operation.manager }}</td>
+        <td>
+            {% for detail in operation.enriched_details %}
+                {{ detail.name }} {{ detail.size }} - {{ detail.quantity }}<br>
+            {% endfor %}
+        </td>
+        <td>
+            {% if operation.visible %}
+                {% for detail in operation.enriched_details %}
+                    {{ detail.name }} {{ detail.size }} - {{ detail.quantity }}<br>
+                {% endfor %}
+            {% else %}
+                <span class="completed">Завершено</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if not operation.confirm %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="count_id" value="{{ operation.id }}">
+                <button type="submit">Подтвердить</button>
+            </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

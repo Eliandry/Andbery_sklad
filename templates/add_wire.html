@@ -55,7 +55,8 @@
         width: 100%;
     }
 </style>
-<h2>Прибытие проволки</h2>
+<h2>Прибытие проволки {{size}}</h2>
+<a href="{% url 'classes' %}" class="button">Назад</a>
 <form method="post">
     {% csrf_token %}
     <div class="form-group">
