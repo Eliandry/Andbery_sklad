@@ -51,26 +51,24 @@
 <table>
     <tr>
         <th>Лид</th>
-        <th>Детали операции</th>
-        <th>Статус</th>
+        <th>Бригада</th>
+        <th>Изначальный монтаж</th>
+        <th>Сделано</th>
         <th>Действие</th>
     </tr>
     {% for operation in operations %}
     <tr>
         <td>{{ operation.operation.manager }}</td>
+        <td>{{ operation.operation.brigade }}</td>
         <td>
             {% for detail in operation.enriched_details %}
                 {{ detail.name }} {{ detail.size }} - {{ detail.quantity }}<br>
             {% endfor %}
         </td>
         <td>
-            {% if operation.visible %}
-                {% for detail in operation.enriched_details %}
-                    {{ detail.name }} {{ detail.size }} - {{ detail.quantity }}<br>
-                {% endfor %}
-            {% else %}
-                <span class="completed">Завершено</span>
-            {% endif %}
+            {% for detail in operation.remaining_details %}
+                {{ detail.name }} {{ detail.size }} - {{ detail.quantity }}<br>
+            {% endfor %}
         </td>
         <td>
             {% if not operation.confirm %}

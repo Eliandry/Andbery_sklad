@@ -229,3 +229,7 @@ class MaterialExportForm(forms.Form):
 class TextProcessingForm(forms.Form):
     text_input = forms.CharField(label='Введите смс', widget=forms.Textarea)
     brigade = forms.ModelChoiceField(queryset=BrigadeWork.objects.all(), label='Выберите бригаду', required=False)
+
+class AddPileForm(forms.Form):
+    pile = forms.ChoiceField(label='Выберите сваю')
+    quantity = forms.IntegerField(label='Количество', min_value=1)

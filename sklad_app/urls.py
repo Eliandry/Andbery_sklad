@@ -54,6 +54,7 @@ urlpatterns = [
     path('add_debt/', AddDebtView.as_view(), name='add_debt'),
     path('display_debts/', display_debts, name='display_debts'),
     path('process_text_view/', process_text_view, name='process_text_view'),
+    path('confirm_operation/', confirm_operation_view, name='confirm_operation'),
     path('update-pile-count/<int:count_id>/', update_pile_count, name='update_pile_count'),
     path('operation-dep-count/', list_operation_dep_count, name='list_operation_dep_count'),
     path('return_piles/', ReturnPilesView.as_view(), name='return_piles'),
@@ -62,5 +63,6 @@ urlpatterns = [
     path('debts/', DebtListView.as_view(), name='debt_list'),
     path('debts/<int:brigade_id>/', DebtDetailView.as_view(), name='debt_detail'),
     path('confirm_departures/', confirm_departures_view, name='confirm_departures'),
-    path('update_send_operation/<int:operation_id>/', update_send_operation, name='update_send_operation')
+    path('update_send_operation/<int:operation_id>/', update_send_operation, name='update_send_operation'),
+    path('add_pile_to_count/<int:count_id>/', add_pile_to_count, name='add_pile_to_count'),
 ]

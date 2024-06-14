@@ -90,7 +90,7 @@ def main(request):
 
             }
         if request.user.userprofile.role.name == "Менеджер":
-            departures = OperationDeparture.objects.filter(confirm=False,confirm_b=True,visible=True)
+            departures = OperationDeparture.objects.filter(confirm=False,visible=True)
             for departure in departures:
                 if departure.details:
                     details = json.loads(departure.details)
@@ -128,7 +128,7 @@ def main(request):
                         except Pile.DoesNotExist:
                             continue
             context = {
-                'departures': departures,
+                'latest_departures': departures,
                 'confirmed': latest_confirmed_departures,
             }
         if request.user.userprofile.role.name == "Производство":
@@ -1880,21 +1880,34 @@ class AddDebtView(View):
         debt = get_object_or_404(Debt, brigade=brigade)
 
         details = json.loads(debt.details)
+        added_piles = {}
 
         for key, value in request.POST.items():
             if key.startswith('pile_'):
                 pile_id = key.split('_')[1]
                 quantity = int(value)
-                pile=Pile.objects.get(id=int(pile_id))
-                pile.count-=quantity
-                pile.save()
-                if pile_id in details:
-                    details[pile_id] += quantity
-                else:
-                    details[pile_id] = quantity
+                if quantity > 0:
+                    pile = get_object_or_404(Pile, id=int(pile_id))
+                    pile.count -= quantity
+                    pile.save()
+                    if pile_id in details:
+                        details[pile_id] += quantity
+                    else:
+                        details[pile_id] = quantity
+                    added_piles[pile_id] = quantity
 
         debt.details = json.dumps(details)
         debt.save()
+
+        # Сохранение в Detail_Debt только добавленных сваев
+        if added_piles:
+            detail_debt = Detail_Debt(
+                details=json.dumps(added_piles),
+                brigade=brigade,
+                confirm=False,
+                date=timezone.now()
+            )
+            detail_debt.save()
 
         return redirect('/')
 
@@ -1919,70 +1932,120 @@ def display_debts(request):
 #{"pile_id": pile_id, "quantity": quantity}
 import re
 def process_text_view(request):
+    pile_pattern = re.compile(r'(\d{1,3})[хx\-](\d{4})[хx\-](\d{3})(-?\d*мм)?(?=\D|$)') # Для извлечения размеров сваи
+    order_pattern = re.compile(r'^([\w\d/\-]+)')
+    rebar_pattern = re.compile(r'\b(\d+) ?мм\b')
+
     def extract_order_number(text):
         order_match = order_pattern.match(text)
         return order_match.group(1) if order_match else "Не найден"
-    if request.method == 'POST':
-        form = TextProcessingForm(request.POST)
-        if form.is_valid():
-            text = form.cleaned_data['text_input']
-            brigade = form.cleaned_data['brigade']
-            pile_pattern = re.compile(r'(\d{1,3})[хx\-](\d{4})[хx\-](\d{3})(-?\d*мм)?(?=\D|$)')# Для извлечения размеров сваи
-            rest_text_pattern = re.compile(r'(\d+)[\-хx](\d+)[\-хx](\d+)')  # Для удаления размеров сваи из текста
-            order_pattern = re.compile(r'^([\w\d/\-]+)')
-            rebar_pattern = re.compile(r'\b(\d+) ?мм\b')
 
-            pile_match = pile_pattern.findall(text)
-            if pile_match:
-                sizes = pile_match  # Получаем размеры сваи
-                modified_text = pile_pattern.sub('', text)
-            else:
-                sizes = (None, None, None)
-                modified_text = text
-            remaining_text = modified_text
-            order_match = extract_order_number(remaining_text)
-            rebar_match = rebar_pattern.search(text)
-            rebar_size = int(rebar_match.group(1)) if rebar_match else 10
-            rebar=str(rebar_size)# Если нет совпадения, по умолчанию ставим 10
-            pile_name = f"ЖБ ф{rebar}"
-            name_pile = NamePile.objects.filter(name=pile_name).first()
-            piles=[]
-            for i in sizes:
-                count=int(i[0])
-                length=i[2]
-                width=i[1]
-                size_f=f'{length}x{width}'
-                pile=Pile.objects.get(name=name_pile,size=size_f)
-                pile.count-=count
-                piles.append({"pile_id": pile.id, "quantity": count})
-                pile.save()
-            details = json.dumps(piles)
-            number_car_id='12333'
+    if request.method == 'POST':
+        if 'confirm' in request.POST:
+            details = request.session.get('details')
+            order_match = request.session.get('order_match')
+            brigade_id = request.session.get('brigade_id')
+            rebar_size = request.session.get('rebar_size')
+            piles = json.loads(details)
+            brigade = BrigadeWork.objects.get(id=brigade_id)
+
             operation_departure = OperationDeparture(
                 manager=order_match,
                 details=details,
-                number_car=number_car_id,
+                number_car='12333',
                 brigade=brigade,
             )
             operation_departure.save()
 
-            op=OperationDepCount(
+            op = OperationDepCount(
                 details=details,
                 operation=operation_departure
-                )
-            send=SendOperation(
+            )
+            send = SendOperation(
                 details=details,
                 operation=operation_departure
-                )
+            )
             send.save()
             op.save()
 
             return redirect('/')
+        else:
+            form = TextProcessingForm(request.POST)
+            if form.is_valid():
+                text = form.cleaned_data['text_input']
+                brigade = form.cleaned_data['brigade']
+                pile_match = pile_pattern.findall(text)
+                if pile_match:
+                    sizes = pile_match  # Получаем размеры сваи
+                    modified_text = pile_pattern.sub('', text)
+                else:
+                    sizes = (None, None, None)
+                    modified_text = text
+
+                remaining_text = modified_text
+                order_match = extract_order_number(remaining_text)
+                rebar_match = rebar_pattern.search(text)
+                rebar_size = int(rebar_match.group(1)) if rebar_match else 10
+                rebar = str(rebar_size) # Если нет совпадения, по умолчанию ставим 10
+                pile_name = f"ЖБ ф{rebar}"
+                name_pile = NamePile.objects.filter(name=pile_name).first()
+                piles = []
+                for i in sizes:
+                    count = int(i[0])
+                    length = i[2]
+                    width = i[1]
+                    size_f = f'{length}x{width}'
+                    pile = Pile.objects.get(name=name_pile, size=size_f)
+                    piles.append({"pile_id": pile.id, "quantity": count, "name": pile.name.name, "size": pile.size})
+
+                details = json.dumps(piles)
+                brigade_id = brigade.id if brigade else None
+
+                # Сохраняем данные в сессии для последующего подтверждения
+                request.session['details'] = details
+                request.session['order_match'] = order_match
+                request.session['brigade_id'] = brigade_id
+                request.session['rebar_size'] = rebar_size
+
+                return render(request, 'confirm_operation.html', {'piles': piles, 'order_match': order_match, 'brigade': brigade})
 
     else:
         form = TextProcessingForm()
 
     return render(request, 'process_text_form.html', {'form': form})
+
+def confirm_operation_view(request):
+    if request.method == 'POST':
+        if 'confirm' in request.POST:
+            details = request.session.get('details')
+            order_match = request.session.get('order_match')
+            brigade_id = request.session.get('brigade_id')
+            rebar_size = request.session.get('rebar_size')
+            piles = json.loads(details)
+            brigade = BrigadeWork.objects.get(id=brigade_id)
+
+            operation_departure = OperationDeparture(
+                manager=order_match,
+                details=details,
+                number_car='12333',
+                brigade=brigade,
+            )
+            operation_departure.save()
+
+            op = OperationDepCount(
+                details=details,
+                operation=operation_departure
+            )
+            send = SendOperation(
+                details=details,
+                operation=operation_departure
+            )
+            send.save()
+            op.save()
+
+            return redirect('/')
+
+    return redirect('process_text_view')
 
 
 def update_pile_count(request, count_id):
@@ -2011,6 +2074,73 @@ def update_pile_count(request, count_id):
 
     return render(request, 'update_pile_count.html', {'count_entry': count_entry, 'piles': piles})
 
+def add_pile_to_count(request, count_id):
+    count_entry = get_object_or_404(OperationDepCount, id=count_id)
+    debt = get_object_or_404(Debt, brigade=count_entry.operation.brigade)
+    operation_departure = count_entry.operation
+
+    debt_details = json.loads(debt.details)
+    choices = [(pile_id, f"{Pile.objects.get(id=pile_id).name.name} {Pile.objects.get(id=pile_id).size} (Доступно: {quantity})")
+               for pile_id, quantity in debt_details.items() if quantity > 0]
+
+    if request.method == 'POST':
+        form = AddPileForm(request.POST)
+        form.fields['pile'].choices = choices
+        if form.is_valid():
+            pile_id = form.cleaned_data['pile']
+            quantity = form.cleaned_data['quantity']
+            pile_object = Pile.objects.get(id=pile_id)
+
+            # Обновляем записи в OperationDepCount
+            piles = json.loads(count_entry.details)
+            for pile in piles:
+                if pile['pile_id'] == int(pile_id):
+                    pile['quantity'] += quantity
+                    break
+            else:
+                piles.append({
+                    'pile_id': int(pile_id),
+                    'quantity': quantity,
+                    'name': pile_object.name.name,
+                    'size': pile_object.size
+                })
+            count_entry.details = json.dumps(piles)
+            count_entry.save()
+
+            # Обновляем записи в Debt
+            debt_details[pile_id] -= quantity
+            debt.details = json.dumps(debt_details)
+            debt.save()
+
+            # Обновляем поле extra_details в OperationDeparture
+            try:
+                extra_details = json.loads(operation_departure.extra_details)
+            except (json.JSONDecodeError, TypeError):
+                extra_details = []
+
+            for pile in extra_details:
+                if pile['pile_id'] == int(pile_id):
+                    pile['quantity'] += quantity
+                    break
+            else:
+                extra_details.append({
+                    'pile_id': int(pile_id),
+                    'quantity': quantity,
+                    'name': pile_object.name.name,
+                    'size': pile_object.size
+                })
+
+            operation_departure.extra_details = json.dumps(extra_details)
+            operation_departure.save()
+
+            return redirect('update_pile_count', count_id=count_id)
+    else:
+        form = AddPileForm()
+        form.fields['pile'].choices = choices
+
+    return render(request, 'add_pile_to_count.html', {'form': form, 'count_entry': count_entry})
+
+
 from django.shortcuts import render, redirect
 from .models import OperationDepCount, Pile, OperationDeparture
 import json
@@ -2018,30 +2148,50 @@ import json
 def list_operation_dep_count(request):
     operations = OperationDepCount.objects.filter(confirm=False)
 
-    # Расшифровываем JSON и обогащаем данные для отображения
     for operation in operations:
         # Получаем связанную операцию
         linked_operation = OperationDeparture.objects.get(id=operation.operation.id)
         linked_details = json.loads(linked_operation.details)
-        details_ins = json.loads(operation.details)
+        extra_details = json.loads(linked_operation.extra_details) if linked_operation.extra_details else []
+        all_details = linked_details + extra_details
+
+        # Обогащенные детали из OperationDeparture
         enriched_details = []
-        details = []
         for detail in linked_details:
             pile = Pile.objects.get(id=detail["pile_id"])
             enriched_details.append({
                 "name": pile.name.name,
                 "size": pile.size,
-                "quantity": detail["quantity"]  # Количество из OperationDeparture
+                "quantity": detail["quantity"]
             })
         operation.enriched_details = enriched_details
-        for detail in details_ins:
+
+        # Детали из OperationDepCount
+        dep_count_details = json.loads(operation.details)
+        done_details = []
+        for detail in dep_count_details:
             pile = Pile.objects.get(id=detail["pile_id"])
-            details.append({
+            done_details.append({
                 "name": pile.name.name,
                 "size": pile.size,
-                "quantity": detail["quantity"]  # Количество из OperationDeparture
+                "quantity": detail["quantity"]
             })
-        operation.details = details
+
+        # Вычисляем оставшиеся сваи
+        remaining_details = []
+        for linked_detail in all_details:
+            remaining_quantity = linked_detail["quantity"]
+            for dep_count_detail in dep_count_details:
+                if linked_detail["pile_id"] == dep_count_detail["pile_id"]:
+                    remaining_quantity -= dep_count_detail["quantity"]
+            remaining_details.append({
+                "name": Pile.objects.get(id=linked_detail["pile_id"]).name.name,
+                "size": Pile.objects.get(id=linked_detail["pile_id"]).size,
+                "quantity": max(remaining_quantity, 0)
+            })
+        operation.remaining_details = remaining_details
+
+        operation.done_details = done_details
 
     if request.method == 'POST':
         count_id = request.POST.get('count_id')
@@ -2159,28 +2309,54 @@ class DebtDetailView(View):
 
 def confirm_departures_view(request):
     send_details = SendDetail.objects.filter(confirm=False)
+    detail_debts = Detail_Debt.objects.filter(confirm=False)
 
-    # Расширяем details для отображения
+    # Расширяем details для отображения в send_details
     for detail in send_details:
         detail.piles_info = []
         try:
             details = json.loads(detail.details)
-            pile = Pile.objects.get(id=details["pile_id"])
-            detail.piles_info.append({
-                "pile": pile,
-                "quantity": details["quantity"]
-            })
+            for item in details:
+                pile = Pile.objects.get(id=item["pile_id"])
+                detail.piles_info.append({
+                    "pile": pile,
+                    "quantity": item["quantity"]
+                })
         except (json.JSONDecodeError, Pile.DoesNotExist):
             detail.piles_info = []
 
+    # Расширяем details для отображения в detail_debts
+    for debt in detail_debts:
+        debt.piles_info = []
+        try:
+            details = json.loads(debt.details)
+            for pile_id, quantity in details.items():
+                pile = Pile.objects.get(id=pile_id)
+                debt.piles_info.append({
+                    "pile": pile,
+                    "quantity": quantity
+                })
+        except (json.JSONDecodeError, Pile.DoesNotExist):
+            debt.piles_info = []
+
     if request.method == 'POST':
         detail_id = request.POST.get('detail_id')
-        detail = get_object_or_404(SendDetail, id=detail_id)
-        detail.confirm = True
-        detail.save()
-        return redirect('/')
+        detail_type = request.POST.get('detail_type')
 
-    return render(request, 'confirm_departures.html', {'send_details': send_details})
+        if detail_type == 'send':
+            detail = get_object_or_404(SendDetail, id=detail_id)
+        elif detail_type == 'debt':
+            detail = get_object_or_404(Detail_Debt, id=detail_id)
+        else:
+            detail = None
+
+        if detail:
+            detail.confirm = True
+            detail.save()
+
+        return redirect('confirm_departures')
+
+    return render(request, 'confirm_departures.html', {'send_details': send_details, 'detail_debts': detail_debts})
 
 
 

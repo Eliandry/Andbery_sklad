@@ -163,6 +163,7 @@ class OperationArrival(models.Model):
 class OperationDeparture(models.Model):
     manager=models.CharField(max_length=500,default='123')
     details = models.TextField()
+    extra_details = models.TextField(default=' ',blank=True,null=True)
     date = models.DateTimeField(auto_now_add=True)
     user = models.ManyToManyField(User)
     description = models.CharField(blank=True, max_length=500)
@@ -190,6 +191,14 @@ class OperationDepCount(models.Model):
 class Debt(models.Model):
     details = models.TextField()
     brigade = models.ForeignKey(BrigadeWork, on_delete=models.CASCADE, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return self.brigade.name
+
+class Detail_Debt(models.Model):
+    details = models.TextField()
+    brigade = models.ForeignKey(BrigadeWork, on_delete=models.CASCADE, blank=True)
+    confirm = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.brigade.name

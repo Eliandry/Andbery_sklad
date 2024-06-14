@@ -1,12 +1,14 @@
 {% extends "index.html" %}
 
 {% block content %}
-<h2>Список непотвержденных деталей отправки</h2>
+<h2>Подтвердить операции</h2>
+
+<h3>Отгрузки по монтажу</h3>
 <table>
     <tr>
         <th>Дата</th>
         <th>Бригада</th>
-        <th>Детали отправки</th>
+        <th>Детали</th>
         <th>Действие</th>
     </tr>
     {% for detail in send_details %}
@@ -14,14 +16,44 @@
         <td>{{ detail.operation.date|date:"d.m.Y H:i" }}</td>
         <td>{{ detail.operation.brigade.name }}</td>
         <td>
-            {% for item in detail.piles_info %}
-                {{ item.pile.name.name }} {{ item.pile.size }} - {{ item.quantity }}<br>
+            {% for pile_info in detail.piles_info %}
+                {{ pile_info.pile.name.name }} {{ pile_info.pile.size }} - {{ pile_info.quantity }}<br>
             {% endfor %}
         </td>
         <td>
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="detail_id" value="{{ detail.id }}">
+                <input type="hidden" name="detail_type" value="send">
+                <button type="submit">Подтвердить</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Отгрузки в долг</h3>
+<table>
+    <tr>
+        <th>Дата</th>
+        <th>Бригада</th>
+        <th>Детали</th>
+        <th>Действие</th>
+    </tr>
+    {% for debt in detail_debts %}
+    <tr>
+        <td>{{ debt.date|date:"d.m.Y H:i" }}</td>
+        <td>{{ debt.brigade.name }}</td>
+        <td>
+            {% for pile_info in debt.piles_info %}
+                {{ pile_info.pile.name.name }} {{ pile_info.pile.size }} - {{ pile_info.quantity }}<br>
+            {% endfor %}
+        </td>
+        <td>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="detail_id" value="{{ debt.id }}">
+                <input type="hidden" name="detail_type" value="debt">
                 <button type="submit">Подтвердить</button>
             </form>
         </td>

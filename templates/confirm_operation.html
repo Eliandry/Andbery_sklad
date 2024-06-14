@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+{% block content %}
+<h2>Подтвердите отгрузку</h2>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label for="order_match">Номер заказа:</label>
+        <input type="text" id="order_match" name="order_match" value="{{ order_match }}">
+    </div>
+    <div>
+        <label for="brigade">Бригада:</label>
+        <input type="text" id="brigade" name="brigade" value="{{ brigade.name }}" readonly>
+    </div>
+    <h3>Детали:</h3>
+    {% for pile in piles %}
+    <div>
+        <label>{{ pile.name }} {{ pile.size }}</label>
+        <input type="number" name="quantity_{{ pile.pile_id }}" value="{{ pile.quantity }}" min="0">
+    </div>
+    {% endfor %}
+    <button type="submit" name="confirm">Подтвердить</button>
+</form>
+{% endblock %}
