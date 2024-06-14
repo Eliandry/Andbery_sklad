@@ -1,0 +1,37 @@
+{% extends 'index.html' %}  <!-- Предполагаем, что есть базовый шаблон -->
+
+{% block content %}
+<h2>Последние списания материалов</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Бетон (кг)</th>
+            <th>Проволока 3 мм (кг)</th>
+            <th>Проволока 4 мм (кг)</th>
+            <th>Проволока 6 мм (кг)</th>
+            <th>Арматура (кг)</th>
+            <th>Арматура 10 мм (кг)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for delivery in deliveries %}
+        <tr>
+            <td>{{ delivery.date|date:"Y-m-d H:i" }}</td>
+            <td>{{ delivery.total_beton }}</td>
+            <td>{{ delivery.total_wire_3 }}</td>
+            <td>{{ delivery.total_wire_4 }}</td>
+            <td>{{ delivery.total_wire_6 }}</td>
+            <td>{{ delivery.total_armature }}</td>
+            <td>{{ delivery.total_armature10 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">Нет данных о списаниях.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

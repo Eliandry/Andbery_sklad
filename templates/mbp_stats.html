@@ -1,0 +1,62 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    tr:nth-child(even) {background-color: #f9f9f9;}
+    tr:hover {background-color: #e8f4f8;}
+    .details-div {
+        margin-bottom: 5px;
+    }
+</style>
+
+<h2>Выдачи</h2>
+<table>
+    <tr>
+        <th>Дата</th>
+        <th>Бригада</th>
+        <th>Детали</th>
+    </tr>
+    {% for stat in mbp_stats_true %}
+    <tr>
+        <td>{{ stat.date|date:"d.m.Y H:i" }}</td>
+        <td>{{ stat.brigade }}</td>
+        <td>
+            {% for name, quantity in stat.details_dict.items %}
+            <div class="details-div">{{ name }}: {{ quantity }}</div>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Поступления</h2>
+<table>
+    <tr>
+        <th>Дата</th>
+        <th>Детали</th>
+    </tr>
+    {% for stat in mbp_stats_false %}
+    <tr>
+        <td>{{ stat.date|date:"d.m.Y H:i" }}</td>
+        <td>
+            {% for name, quantity in stat.details_dict.items %}
+            <div class="details-div">{{ name }}: {{ quantity }}</div>
+            {% endfor %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

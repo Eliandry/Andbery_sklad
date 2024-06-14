@@ -1,0 +1,59 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<a href="/" class="button">Назад</a>
+<a href='{% url "latest_deliveries" %}'>Операции списания</a>
+<h2>Обзор материалов</h2>
+
+
+<h3>Всего на складе</h3>
+<ul>
+    <li>Бетон: {{ wirehouseb.beton }} куб м</li>
+    <li>Арматура 8 мм: {{ wirehouseb.armature }} кг</li>
+    <li>Арматура 10 мм: {{ wirehouseb.armature10 }} кг</li>
+    <li>Проволока 3: {{ wirehouseb.wire3 }} кг</li>
+    <li>Проволока 4: {{ wirehouseb.wire4 }} кг</li>
+    <li>Проволока 6: {{ wirehouseb.wire6 }} кг</li>
+</ul>
+
+
+
+
+<h3>Последние поступления</h3>
+<h4>Бетон</h4>
+<ul>
+    {% for material in last_five_beton %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} куб м. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 3 мм</h4>
+<ul>
+    {% for material in last_five_wire %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} кг - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 4 мм</h4>
+<ul>
+    {% for material in last_five_wire4 %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} кг - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Проволка 6 мм</h4>
+<ul>
+    {% for material in last_five_wire6 %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} кг. - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Арматура 8мм</h4>
+<ul>
+    {% for material in last_five_armature %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} кг - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+<h4>Арматура 10мм</h4>
+<ul>
+    {% for material in last_five_armature10 %}
+        <li>{{ material.date|date:"Y-m-d" }}: {{ material.count }} кг - от {{ material.company_sell }} Покупатель: {{ material.company_buy }} Цена: {{ material.price }} руб.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

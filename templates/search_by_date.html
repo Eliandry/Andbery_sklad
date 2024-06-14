@@ -1,0 +1,187 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  tr:nth-child(even) {background-color: #f9f9f9;}
+</style>
+<a href="/" class="button">Назад</a>
+<h2>Поиск по диапазону дат</h2>
+<form method="get" action="{% url 'search' %}">
+    {{ form.as_p }}
+    <button type="submit">Поиск</button>
+</form>
+
+{% if search_results %}
+    {% if search_results.departures %}
+        <h3>Отгрузки</h3>
+        <table>
+            <tr>
+                <th>Дата</th>
+                <th>Свая</th>
+                <th>Количество</th>
+                <th>Лид</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+            </tr>
+            {% for arrival in search_results.departures %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if search_results.arrivals %}
+    <div class="latest-operations">
+    <h3>Последние операции прихода</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Сваи</th>
+                <th>Количество</th>
+                <th>Бригада</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in search_results.arrivals %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if search_results.returns %}
+    <h3>Возвраты</h3>
+    <table>
+        <tr>
+            <th>Дата</th>
+            <th>Лид</th>
+            <th>Свая</th>
+            <th>Количество</th>
+
+            <th>Описание</th>
+            <th>Подтверждено</th>
+            <th>Пользователь</th>
+        </tr>
+        {% for item in search_results.returns %}
+        <tr>
+            <td>{{ item.date|date:"d-m-Y" }}</td>
+            <td>{{ item.manager }}</td>
+            <td>{{ item.pile.name }}</td>
+            <td>{{ item.quantity }}</td>
+
+            <td>{{ item.description }}</td>
+            <td>{{ item.confirm_b|yesno:"Да,Нет" }}</td>
+            <td>
+                {% for user in item.user.all %}
+                    {{ user.get_full_name|default:user.username }}
+                    {% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.beton %}
+    <h3>Бетон</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.beton %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}</td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.wire %}
+    <h3>Проволока</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.wire %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}</td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+{% if search_results.armature %}
+    <h3>Арматура</h3>
+    <table>
+        <tr>
+            <th>Количество</th>
+            <th>Дата</th>
+            <th>Компания-продавец</th>
+            <th>Компания-покупатель</th>
+            <th>Цена</th>
+        </tr>
+        {% for item in search_results.armature %}
+        <tr>
+            <td>{{ item.count }}</td>
+            <td>{{ item.date|date:"Y-m-d" }}"></td>
+            <td>{{ item.company_sell }}</td>
+            <td>{{ item.company_buy }}</td>
+            <td>{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+{% else %}
+    <p>Пожалуйста, выберите диапазон дат для поиска.</p>
+{% endif %}
+{% endblock %}

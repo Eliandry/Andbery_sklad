@@ -1,0 +1,66 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<style>
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+    }
+    div {
+        margin-bottom: 10px;
+    }
+    label {
+        display: inline-block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0 22px 0;
+        display: inline-block;
+        border: none;
+        background: #f1f1f1;
+    }
+    input[type="number"]:focus {
+        background-color: #ddd;
+        outline: none;
+    }
+    button[type="submit"] {
+        background-color: #a31717;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        opacity: 0.9;
+    }
+    button[type="submit"]:hover {
+        opacity:1;
+    }
+</style>
+
+  <form method="post">
+        {% csrf_token %}
+        <label for="thickness">Выберите толщину листа:</label>
+        <select name="thickness" id="thickness">
+            <option value="4">4 мм</option>
+            <option value="5">5 мм</option>
+        </select>
+
+        <h2>Введите количество листов для каждого диаметра:</h2>
+        {% for diameter in diameters %}
+        <div>
+            <label for="diameter_{{ diameter }}">Листы {{ diameter }} диаметр (мм):</label>
+            <input type="number" name="{{ diameter }}" id="diameter_{{ diameter }}" min="0" value="0">
+        </div>
+        {% endfor %}
+
+        <button type="submit">Рассчитать</button>
+    </form>
+{% endblock %}

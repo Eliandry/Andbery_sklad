@@ -1,0 +1,61 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Возвраты на подтверждение</h2>
+
+<div>
+    <table border="1">
+        <tr>
+            <th>Дата</th>
+            <th>Свая</th>
+            <th>Количество</th>
+            <th>Действие</th>
+        </tr>
+        {% for return_pile in return_piles_to_confirm %}
+        <tr>
+            <td>{{ return_pile.date|date:"d.m.Y" }}</td>
+            <td>{{ return_pile.pile.name }} {{ return_pile.pile }}</td>
+            <td>{{ return_pile.quantity }}</td>
+
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_pile_id" value="{{ return_pile.id }}">
+                    <input type="hidden" name="action" value="confirm">
+                    <button type="submit">Подтвердить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>Подтвержденные возвраты</h2>
+
+<div>
+    <table border="1">
+        <tr>
+            <th>Дата</th>
+            <th>Свая</th>
+            <th>Количество</th>
+            <th>Действие</th>
+        </tr>
+        {% for return_pile in confirmed_return_piles %}
+        <tr>
+            <td>{{ return_pile.date|date:"d.m.Y" }}</td>
+            <td>{{ return_pile.pile.name }} {{ return_pile.pile }}</td>
+            <td>{{ return_pile.quantity }}</td>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_pile_id" value="{{ return_pile.id }}">
+                    <input type="hidden" name="action" value="cancel">
+                    <button type="submit">Отменить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

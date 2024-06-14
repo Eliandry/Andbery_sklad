@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Добавить долг бригаде</h2>
+<form method="post">
+    {% csrf_token %}
+    <div>
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade">
+            <option value="">--- Выберите бригаду ---</option>
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}">{{ brigade.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% for pile in piles %}
+    <div>
+        <label for="pile_{{ pile.id }}">{{ pile.name.name }} {{ pile.size }}</label>
+        <input type="number" id="pile_{{ pile.id }}" name="pile_{{ pile.id }}" min="0" value="0">
+    </div>
+    {% endfor %}
+    <button type="submit">Сохранить</button>
+</form>
+
+{% endblock %}

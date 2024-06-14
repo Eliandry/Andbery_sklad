@@ -1,0 +1,10 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h2>Экспорт операций отгрузки</h2>
+<form method="post" action="{% url 'export_dep' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Экспорт в Excel</button>
+</form>
+{% endblock %}

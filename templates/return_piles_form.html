@@ -1,0 +1,24 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Возврат свай</h2>
+<form method="post">
+    {% csrf_token %}
+    <a href='/'>Назад</a>
+    <div>
+        <label for="brigade">Бригада:</label>
+        <input type="text" id="brigade" name="brigade" value="{{ user_brigade.brigade.name }}" readonly>
+    </div>
+    {% for pile in piles %}
+    <div>
+        <label for="pile_{{ pile.id }}">{{ pile.name.name }} {{ pile.size }}</label>
+        <input type="number" id="pile_{{ pile.id }}" name="pile_{{ pile.id }}" min="0" value="0">
+    </div>
+    {% endfor %}
+    <div>
+        <label for="description">Описание:</label>
+        <textarea id="description" name="description" rows="4" cols="50"></textarea>
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

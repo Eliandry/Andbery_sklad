@@ -1,0 +1,327 @@
+{% extends "index.html" %}
+
+{% block content %}
+<style>
+ table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    th {
+        background-image: linear-gradient(to right, #9e2e35, #9e2e35);
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+.button {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px 20px;
+    background-image: linear-gradient(to right, #f44336, #d32f2f); /* Градиентный фон */
+    color: white;
+    text-decoration: none;
+    border: none; /* Убираем стандартную рамку */
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Добавляем тень для эффекта глубины */
+    transition: all 0.3s ease; /* Плавные переходы для фона, тени и трансформации */
+}
+
+    .button:hover {
+    background-image: linear-gradient(to right, #d32f2f, #b71c1c); /* Изменение градиента при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Увеличение тени для "поднятия" кнопки */
+    transform: translateY(-2px); /* Поднимаем кнопку при наведении */
+}
+.header-container {
+    text-align: center; /* Центрирование содержимого */
+}
+    h2 {
+    display: inline-block; /* Позволяет заголовку занимать только необходимое пространство */
+    font-family: 'Comic Sans MS', cursive; /* Установка шрифта */
+    position: relative; /* Относительное позиционирование для псевдоэлемента */
+    margin-bottom: 20px; /* Отступ снизу для разделения от линии */
+}
+
+/* Градиентная линия под заголовком */
+h2::after {
+    content: ''; /* Необходимо для создания псевдоэлемента */
+    display: block; /* Блочный тип позволяет применить margin: auto */
+    width: 50%; /* Фиксированная ширина линии */
+    height: 2px; /* Высота линии */
+    background-image: linear-gradient(to right, #ff4747, #e01212); /* Градиент */
+    margin: 8px auto 0; /* Верхний отступ и автоматическое центрирование */
+}
+    .buttons-container {
+    text-align: center; /* Центрирует содержимое контейнера */
+    }
+ @media (max-width: 768px) {
+        .buttons-container {
+            flex-direction: column;
+        }
+
+        .button {
+            width: 100%;
+            box-sizing: border-box; /* Убедитесь, что кнопки не выходят за пределы контейнера */
+        }
+
+        table, th, td {
+            font-size: 14px; /* Уменьшаем размер шрифта для таблицы */
+        }
+    }
+        button[type="submit"] {
+        background-color: #4CAF50; /* Зеленый цвет, не слишком яркий */
+        color: white;
+        padding: 10px 20px; /* Увеличиваем размер кнопки */
+        border: none;
+        border-radius: 5px; /* Скругляем углы */
+        cursor: pointer; /* Изменяем курсор на указатель */
+        font-size: 16px; /* Увеличиваем размер шрифта */
+        transition: background-color 0.3s ease; /* Плавное изменение цвета при наведении */
+    }
+
+    button[type="submit"]:hover {
+        background-color: #45a049; /* Немного темнее при наведении */
+    }
+        .checkmark {
+        color: green;
+        font-size: 20px; /* Размер галочки */
+    }
+</style>
+
+{% if user.is_authenticated %}
+    {% if user.userprofile.role.name == "Кладовщик" %}
+        <div class="header-container">
+    <h2>Действия</h2>
+</div>
+        <div class="buttons-container">
+        <a href="{% url 'operation_arrival_list' %}" class="button">Прибытия</a>
+        <a href="{% url 'confirm_operations' %}" class="button">Отгрузки</a>
+        <a href="{% url 'add_debt' %}" class="button">Погрузить доп. сваи</a>
+        <a href="{% url 'update_mbp' %}" class="button">Выдача МБП</a>
+        <a href="{% url 'confirm_sklad_list' %}" class="button">Подтверждение возвратов</a>
+
+        </div>
+<div class="latest-operations">
+    <h3>Последние операции прихода</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_arrivals %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.description }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="latest-operations">
+    <h2>Последние операции монтажей</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_departures %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    {% endif %}
+{% endif %}
+
+{% if user.userprofile.role.name == "Охранник" %}
+    <div class="buttons-container">
+        <a href="{% url 'confirm_departures' %}" class="button">Подтвердить отгрузки</a>
+        <a href="{% url 'return_piles_list' %}" class="button">Операции возврата</a>
+
+    </div>
+    <div class="latest-operations">
+    <h3>Активные операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in departures %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="latest-operations">
+    <h3>Последние операции отгрузки</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Название сваи</th>
+                <th>Количество</th>
+                <th>Подтверждение</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for arrival in confirmed %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td><span class="checkmark">&#10003;</span></td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Бухгалтер" %}
+    <a href="{% url 'list_operation_dep_count' %}" class="button">Подтверждение операций монтажа</a>
+    <a href="{% url 'debt_list' %}" class="button">Списание долга</a>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Производство" %}
+
+    <div class="buttons-container">
+            <a href="{% url 'jb' %}" class="button">ЖБ Производство</a>
+            <a href="{% url 'vint' %}" class="button">Винтовое производство</a>
+            <a href="{% url 'add_mbp' %}" class="button">Поступление МБП</a>
+
+            <a href="{% url 'stat_mbp' %}" class="button">Операции МБП</a>
+
+            <a href="{% url 'excel' %}" class="button">скачать Excel</a>
+        </div>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Менеджер" %}
+    <a href="{% url 'process_text_view' %}" class="button">Добавить отгрузку</a>
+    <div class="latest-operations">
+    <h2>Последние операции отгрузки</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+                <th>Автомобиль</th>
+                <th>Бригада</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_departures %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if user.is_authenticated and user.userprofile.role.name == "Бригада" %}
+    <div class="buttons-container">
+        <a href="{% url 'return_piles' %}" class="button">Возврат свай</a>
+    </div>
+<h2>Активные операции</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Дата операции</th>
+            <th>Лид</th>
+            <th>Подтверждено</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for operation in operation_dep_counts %}
+        <tr>
+            <td>{{ operation.operation.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ operation.operation.manager }}</td>
+            <td>{{ operation.confirm|yesno:"Да,Нет" }}</td>
+            <td><a href="{% url 'update_pile_count' operation.id %}">Изменить количество</a></td>
+        </tr>
+            {% empty %}
+        <tr>
+        <td colspan="4">Нет активных операций.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+{% endif %}
+{% endblock %}

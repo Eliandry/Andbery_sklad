@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Долги бригад</h2>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Бригада</th>
+            <th>Детали</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for debt in debts %}
+        <tr>
+            <td>{{ debt.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ debt.brigade }}</td>
+            <td>
+                {% for pile in debt.piles_info %}
+                    <div>{{ pile.name }} {{ pile.size }}: {{ pile.quantity }} шт.</div>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "index.html" %}
+{% block content %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const managerInput = document.getElementById('manager');
+    const numberCarSelect = document.getElementById('number_car');
+    const brigadeSelect = document.getElementById('brigade');
+    const submitButton = document.querySelector('button[type="submit"]');
+
+    // Функция для обновления состояния кнопки "Сохранить"
+    function updateSubmitButtonState() {
+        // Проверяем, что все необходимые поля заполнены
+        const isAllFilled = managerInput.value.trim() !== '' &&
+                            numberCarSelect.value !== '' &&
+                            brigadeSelect.value !== '';
+        submitButton.disabled = !isAllFilled;
+    }
+
+    // Добавляем обработчики событий на изменение значений полей
+    managerInput.addEventListener('input', updateSubmitButtonState);
+    numberCarSelect.addEventListener('change', updateSubmitButtonState);
+    brigadeSelect.addEventListener('change', updateSubmitButtonState);
+
+    // Начальное обновление состояния кнопки
+    updateSubmitButtonState();
+});
+</script>
+<script>
+    document.getElementById('brigade_name').addEventListener('input', function() {
+    var input = this.value;
+    // Здесь ваш AJAX запрос для автодополнения
+    fetch('/get_brigades/?query=' + input)
+        .then(response => response.json())
+        .then(data => {
+            // Очистить предыдущие результаты
+            let autocompleteResults = document.getElementById('autocomplete-results');
+            autocompleteResults.innerHTML = '';
+            data.forEach(brigade => {
+                let option = document.createElement('div');
+                option.innerHTML = brigade.name;
+                option.onclick = function() {
+                    document.getElementById('brigade_name').value = brigade.name;
+                    document.getElementById('brigade_id').value = brigade.id;
+                    autocompleteResults.innerHTML = '';
+                };
+                autocompleteResults.appendChild(option);
+            });
+        });
+});
+</script>
+<style>
+#autocomplete-results div {
+    cursor: pointer;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+#autocomplete-results div:hover {
+    background-color: #f0f0f0;
+}
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    form {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button[type="submit"] {
+        background-color: #e30b0b;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #ad3939;
+    }
+
+    .form-group select {
+        display: block;
+        width: 100%;
+    }
+</style>
+  <h2>Отгрузка свай</h2>
+<a href="{% url 'jb' %}" class="button">Назад</a>
+<form method="post">
+    {% csrf_token %}
+    <!-- Поля для других атрибутов OperationDeparture -->
+    <div>
+        <label for="manager">Лид:</label>
+        <input type="text" id="manager" name="manager">
+    </div>
+    <div>
+        <label for="description">Описание:</label>
+        <input type="text" id="description" name="description">
+    </div>
+    <!-- Выбор Car -->
+
+<div>
+    <label for="number_car">Номер авто:</label>
+    <input type="text" id="number_car" name="number_car" placeholder="Введите номер авто">
+</div>
+    <!-- Выбор BrigadeWork -->
+    <div>
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade">
+            <option value="">--- Select Brigade ---</option>
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}">{{ brigade }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <!-- Динамическое создание полей для Pile -->
+    <h4>Сваи:</h4>
+    {% for pile in piles %}
+    <div>
+        <span>{{ pile.name.name }} {{ pile.size }}</span>
+        <input type="number" name="pile_{{ pile.id }}" min="0" value="">
+    </div>
+    {% endfor %}
+    <button type="submit">Сохранить</button>
+</form>
+
+{%endblock%}

@@ -1,0 +1,106 @@
+{% extends "index.html" %}
+
+{% block content %}
+<a href="/" class="button">Назад</a>
+<h2>Операции на подтверждение отгрузок</h2>
+<style>
+  .icon-true {
+    color: green;
+  }
+
+  .icon-false {
+    color: red;
+  }
+</style>
+<div>
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Сваи</th>
+            <th>Количество</th>
+            <th>Бригада</th>
+            <th>Лид</th>
+            <th>Авто</th>
+            <th>Примечание</th>
+            <th>Действие</th>
+            <th>Удаление</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for arrival in operations_to_confirm %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.description }}</td>
+                        <td>
+                            <a href="{% url 'update_send_operation' operation_id=arrival.id %}">Добавить отгрузку</a>
+
+                        </td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="operation_id" value="{{ arrival.id }}">
+                                <input type="hidden" name="action" value="vis">
+                                <button type="submit">Удалить</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+</div>
+
+<h2>Подтвержденные операции</h2>
+
+<div>
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Сваи</th>
+            <th>Количество</th>
+            <th>Бригада</th>
+            <th>Лид</th>
+            <th>Действие</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for arrival in confirmed_operations %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
+                        <td>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="operation_id" value="{{ arrival.id }}">
+                                <input type="hidden" name="action" value="cancel">
+                                <button type="submit">Отменить</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+</div>
+
+{% endblock %}
