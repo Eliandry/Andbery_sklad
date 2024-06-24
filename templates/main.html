@@ -107,6 +107,7 @@ h2::after {
         <a href="{% url 'confirm_operations' %}" class="button">Отгрузки</a>
         <a href="{% url 'add_debt' %}" class="button">Погрузить доп. сваи</a>
         <a href="{% url 'update_mbp' %}" class="button">Выдача МБП</a>
+        <a href="{% url 'tool_operation_list' %}" class="button">Инструменты</a>
         <a href="{% url 'confirm_sklad_list' %}" class="button">Подтверждение возвратов</a>
 
         </div>
@@ -140,28 +141,93 @@ h2::after {
     </table>
 </div>
 <div class="latest-operations">
-    <h2>Последние операции монтажей</h2>
+    <h2>Последние Активные операции монтажей</h2>
     <table>
         <thead>
             <tr>
                 <th>Дата</th>
+                <th>Бригада</th>
+                <th>Лид</th>
                 <th>Cваи</th>
                 <th>Количество</th>
-                <th>Автомобиль</th>
-                <th>Бригада</th>
+
+
             </tr>
         </thead>
         <tbody>
             {% for arrival in latest_departures %}
                 <tr>
                     <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
                     {% for pile_info in arrival.piles_info %}
                         {% if not forloop.first %}<tr>{% endif %}
                         <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
                         <td>{{ pile_info.quantity }}</td>
                         {% if forloop.first %}
-                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car.number }}</td>
-                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
+
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="latest-operations">
+    <h2>Последние Активные операции отгрузок</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Бригада</th>
+                <th>Лид</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_opp %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.operation.brigade }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.operation.manager }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="latest-operations">
+    <h2>Завершенные операции отгрузок</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Бригада</th>
+                <th>Лид</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in last_latest_opp %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.operation.brigade }}</td>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.operation.manager }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
                         {% endif %}
                         {% if not forloop.last %}</tr>{% endif %}
                     {% endfor %}

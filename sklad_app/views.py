@@ -37,7 +37,7 @@ def main(request):
                             })
                         except Pile.DoesNotExist:
                             continue
-            latest_departures = OperationDeparture.objects.all().order_by('-date')[:10]
+            latest_departures = OperationDeparture.objects.filter(confirm_b=False,visible=True).order_by('-date')[:10]
             for departure in latest_departures:
                 if departure.details:
                     details = json.loads(departure.details)
@@ -51,9 +51,39 @@ def main(request):
                             })
                         except Pile.DoesNotExist:
                             continue
+            latest_opp = SendDetail.objects.filter(confirm=False)[:10]
+            for arrival in latest_opp:
+                if arrival.details:
+                    detail = json.loads(arrival.details)
+                    arrival.piles_info = []
+
+                    try:
+                        pile = Pile.objects.get(id=detail["pile_id"])
+                        arrival.piles_info.append({
+                                "pile": pile,
+                                "quantity": detail["quantity"]
+                        })
+                    except Pile.DoesNotExist:
+                        continue
+            last_latest_opp = SendDetail.objects.filter(confirm=True)[:10]
+            for arrival in last_latest_opp:
+                if arrival.details:
+                    detail = json.loads(arrival.details)
+                    arrival.piles_info = []
+
+                    try:
+                        pile = Pile.objects.get(id=detail["pile_id"])
+                        arrival.piles_info.append({
+                                "pile": pile,
+                                "quantity": detail["quantity"]
+                        })
+                    except Pile.DoesNotExist:
+                        continue
             context = {
                 'latest_arrivals': latest_arrivals,
                 'latest_departures': latest_departures,
+                'latest_opp':latest_opp,
+                'last_latest_opp':last_latest_opp
             }
         if request.user.userprofile.role.name == "Охранник":
             departures = OperationDeparture.objects.filter(confirm=False,confirm_b=True,visible=True)
@@ -2257,11 +2287,11 @@ class ReturnPilesListView(View):
 
 class ConfirmSkladView(View):
     def get(self, request):
-        return_piles_list = ReturnPiles.objects.filter(confirm_s=True,confirm_sklad=False)
+        return_piles_list = ReturnPiles.objects.filter(confirm_s=True, confirm_sklad=False)
         for return_pile in return_piles_list:
             return_pile.details_dict = json.loads(return_pile.details)
             for pile_id, quantity in return_pile.details_dict.items():
-                pile = Pile.objects.get(id=pile_id)
+                pile = Pile.objects.get(id=int(pile_id))  # Преобразование в целое число
                 return_pile.details_dict[pile_id] = {
                     'name': pile.name.name,
                     'size': pile.size,
@@ -2276,10 +2306,10 @@ class ConfirmSkladView(View):
         return_pile.save()
         di = json.loads(return_pile.details)
         for pile_id, quantity in di.items():
-            pile = Pile.objects.get(id=pile_id)
-            pile.count+=int(quantity)
+            pile = Pile.objects.get(id=int(pile_id))  # Преобразование в целое число
+            pile.count += int(quantity)
             pile.save()
-        return redirect('/')  # Перенаправление на список
+        return redirect('/')
 
 
 class DebtListView(View):
@@ -2317,27 +2347,38 @@ def confirm_departures_view(request):
         try:
             details = json.loads(detail.details)
             for item in details:
-                pile = Pile.objects.get(id=item["pile_id"])
-                detail.piles_info.append({
-                    "pile": pile,
-                    "quantity": item["quantity"]
-                })
-        except (json.JSONDecodeError, Pile.DoesNotExist):
+                if isinstance(item, dict) and "pile_id" in item and "quantity" in item:
+                    pile_id = item["pile_id"]
+                    quantity = item["quantity"]
+                    if pile_id is not None:
+                        pile = Pile.objects.get(id=int(pile_id))
+                        detail.piles_info.append({
+                            "pile": pile,
+                            "quantity": quantity
+                        })
+                else:
+                    print(f"Unexpected item format in send_detail id={detail.id}: {item}")
+        except (json.JSONDecodeError, Pile.DoesNotExist) as e:
             detail.piles_info = []
+            print(f"Error processing send_detail id={detail.id}: {e}")
 
     # Расширяем details для отображения в detail_debts
     for debt in detail_debts:
         debt.piles_info = []
         try:
             details = json.loads(debt.details)
-            for pile_id, quantity in details.items():
-                pile = Pile.objects.get(id=pile_id)
-                debt.piles_info.append({
-                    "pile": pile,
-                    "quantity": quantity
-                })
-        except (json.JSONDecodeError, Pile.DoesNotExist):
+            if isinstance(details, dict):
+                for pile_id, quantity in details.items():
+                    pile = Pile.objects.get(id=int(pile_id))
+                    debt.piles_info.append({
+                        "pile": pile,
+                        "quantity": quantity
+                    })
+            else:
+                print(f"Unexpected details format in detail_debt id={debt.id}: {details}")
+        except (json.JSONDecodeError, Pile.DoesNotExist) as e:
             debt.piles_info = []
+            print(f"Error processing detail_debt id={debt.id}: {e}")
 
     if request.method == 'POST':
         detail_id = request.POST.get('detail_id')
@@ -2397,3 +2438,130 @@ def update_send_operation(request, operation_id):
         detail['size'] = pile_object.size
 
     return render(request, 'update_send_operation.html', {'operation': operation, 'details': details})
+
+
+
+
+
+
+class ToolOperationView(View):
+    def get(self, request):
+        form = ToolOperationForm()
+        brigades = BrigadeWork.objects.all()
+        tools = Tool.objects.all()
+        return render(request, 'tool_operation_form.html', {'form': form, 'brigades': brigades, 'tools': tools})
+
+    def post(self, request):
+        form = ToolOperationForm(request.POST)
+        if form.is_valid():
+            brigade = form.cleaned_data['brigade']
+            operation = form.cleaned_data['operation']
+            tool_details = {}
+
+            for key, value in request.POST.items():
+                if key.startswith('tool_') and value:
+                    tool_id = int(key.split('_')[1])
+                    quantity = int(value)
+                    tool = Tool.objects.get(id=tool_id)
+
+                    # Обновляем данные в Tool_details
+                    tool_detail_entry = Tool_details(
+                        details=json.dumps({tool_id: quantity}),
+                        brigade=brigade,
+                        operation=operation
+                    )
+                    tool_detail_entry.save()
+
+                    # Обновляем или создаем данные в BrigadeTool
+                    brigade_tool, created = BrigadeTool.objects.get_or_create(brigade=brigade)
+                    brigade_tool_details = json.loads(brigade_tool.details) if brigade_tool.details else {}
+
+                    if operation == 'Дать':
+                        if str(tool_id) in brigade_tool_details:
+                            brigade_tool_details[str(tool_id)] += quantity
+                        else:
+                            brigade_tool_details[str(tool_id)] = quantity
+                    elif operation == 'Списать':
+                        if str(tool_id) in brigade_tool_details:
+                            brigade_tool_details[str(tool_id)] -= quantity
+                            if brigade_tool_details[str(tool_id)] <= 0:
+                                del brigade_tool_details[str(tool_id)]
+                        else:
+                            brigade_tool_details[str(tool_id)] = -quantity
+
+                    brigade_tool.details = json.dumps(brigade_tool_details)
+                    brigade_tool.save()
+
+            return redirect('/')
+
+        brigades = BrigadeWork.objects.all()
+        tools = Tool.objects.all()
+        return render(request, 'tool_operation_form.html', {'form': form, 'brigades': brigades, 'tools': tools})
+
+class ToolOperationListView(View):
+    def get(self, request):
+        operations = Tool_details.objects.order_by('-date')[:10]
+
+        for operation in operations:
+            operation_details = json.loads(operation.details)
+            enriched_details = {}
+            for tool_id, quantity in operation_details.items():
+                tool = get_object_or_404(Tool, id=tool_id)
+                enriched_details[tool.name] = quantity
+            operation.details = enriched_details
+
+        return render(request, 'tool_operation_list.html', {'operations': operations})
+
+def get_brigade_tools(request, brigade_id):
+    brigade_tool = BrigadeTool.objects.filter(brigade_id=brigade_id).first()
+    tools = []
+    if brigade_tool:
+        details = json.loads(brigade_tool.details)
+        for tool_id, count in details.items():
+            tool = Tool.objects.get(id=tool_id)
+            tools.append({'name': tool.name, 'count': count})
+    return JsonResponse(tools, safe=False)
+
+class ExportToolDetailsView(View):
+    def get(self, request):
+        form = DateRangeForm()
+        return render(request, 'export_tool_details.html', {'form': form})
+
+    def post(self, request):
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+
+            # Фильтруем записи по дате
+            if end_date:
+                tool_details = Tool_details.objects.filter(date__range=[start_date, end_date])
+            else:
+                tool_details = Tool_details.objects.filter(date__gte=start_date)
+
+            # Создаем DataFrame для данных
+            data = []
+            for detail in tool_details:
+                details_dict = json.loads(detail.details)
+                for tool_id, quantity in details_dict.items():
+                    tool = Tool.objects.get(id=tool_id)
+                    data.append({
+                        'Дата': detail.date.strftime('%Y-%m-%d'),
+                        'Бригада': detail.brigade.name,
+                        'Операция': detail.operation,
+                        'Инструмент': tool.name,
+                        'Количество': quantity
+                    })
+
+            df = pd.DataFrame(data)
+
+            # Генерируем Excel файл
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename=tool_details_{start_date}_to_{end_date if end_date else "present"}.xlsx'
+
+            with pd.ExcelWriter(response, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Tool Details')
+
+            return response
+
+        return render(request, 'export_tool_details.html', {'form': form})

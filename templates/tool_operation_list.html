@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+
+{% block content %}
+<a href="{% url 'tool_operation_form' %}" class="button">Дать/Списать инструменты</a>
+<a href="{% url 'export_tool_details' %}" class="button">Скачать историю</a>
+<h2>Последние 10 операций с инструментами</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Бригада</th>
+            <th>Операция</th>
+            <th>Детали</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for operation in operations %}
+        <tr>
+            <td>{{ operation.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ operation.brigade.name }}</td>
+            <td>{{ operation.operation }}</td>
+            <td>
+                {% for tool, quantity in operation.details.items %}
+                    {{ tool }}: {{ quantity }}<br>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

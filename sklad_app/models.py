@@ -181,6 +181,7 @@ class SendDetail(models.Model):
     operation=models.ForeignKey(OperationDeparture,on_delete=models.CASCADE)
     details = models.TextField()
     confirm = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
 
 class OperationDepCount(models.Model):
     operation=models.ForeignKey(OperationDeparture, on_delete=models.CASCADE)
@@ -326,3 +327,26 @@ class ReturnPiles(models.Model):
     description = models.CharField(blank=True, max_length=500)
     confirm_s=models.BooleanField(default=False)
     confirm_sklad=models.BooleanField(default=False)
+
+
+#Инструменты
+
+class Tool(models.Model):
+    name=models.CharField(max_length=500)
+    count=models.IntegerField()
+
+
+class BrigadeTool(models.Model):
+    details = models.TextField()
+    brigade = models.ForeignKey(BrigadeWork, on_delete=models.CASCADE)
+
+
+class Tool_details(models.Model):
+    details = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    brigade=models.ForeignKey(BrigadeWork, on_delete=models.CASCADE)
+    TYPE_CHOICES = (
+        ('Списать','Списать'),
+        ('Дать','Дать')
+    )
+    operation=models.CharField(max_length=30,choices=TYPE_CHOICES)

@@ -65,4 +65,8 @@ urlpatterns = [
     path('confirm_departures/', confirm_departures_view, name='confirm_departures'),
     path('update_send_operation/<int:operation_id>/', update_send_operation, name='update_send_operation'),
     path('add_pile_to_count/<int:count_id>/', add_pile_to_count, name='add_pile_to_count'),
+    path('tool-operation-list/', ToolOperationListView.as_view(), name='tool_operation_list'),
+    path('get-brigade-tools/<int:brigade_id>/', get_brigade_tools, name='get_brigade_tools'),
+    path('tool-operation/', ToolOperationView.as_view(), name='tool_operation_form'),
+    path('export-tool-details/', ExportToolDetailsView.as_view(), name='export_tool_details'),
 ]

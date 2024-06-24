@@ -1,0 +1,131 @@
+{% extends "index.html" %}
+
+{% block content %}
+<h2>Операции с инструментами</h2>
+<form method="post" class="tool-operation-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="brigade">Бригада:</label>
+        <select id="brigade" name="brigade" class="form-control">
+            <option value="">--- Выберите бригаду ---</option>
+            {% for brigade in brigades %}
+            <option value="{{ brigade.id }}" data-url="{% url 'get_brigade_tools' brigade.id %}">{{ brigade.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="operation">Операция:</label>
+        <select id="operation" name="operation" class="form-control">
+            <option value="Дать">Дать</option>
+            <option value="Списать">Списать</option>
+        </select>
+    </div>
+    <div id="brigade-tools" class="brigade-tools">
+        <h4>В наличии у бригады</h4>
+        <!-- Здесь будут динамически добавляться инструменты бригады -->
+    </div>
+    <div class="tool-list">
+        {% for tool in tools %}
+        <div class="form-group tool-item">
+            <label for="tool_{{ tool.id }}">{{ tool.name }}</label>
+            <input type="number" id="tool_{{ tool.id }}" name="tool_{{ tool.id }}" min="0" value="0" class="form-control">
+        </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+
+<script>
+    document.getElementById('brigade').addEventListener('change', function() {
+        const brigadeId = this.value;
+
+        if (brigadeId) {
+            fetch(`/get-brigade-tools/${brigadeId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    let toolsDiv = document.getElementById('brigade-tools');
+                    toolsDiv.innerHTML = ''; // Очищаем текущий список
+                    data.forEach(item => {
+                        let toolElement = document.createElement('div');
+                        toolElement.className = 'form-group tool-item';
+                        toolElement.innerHTML = `<label>${item.name}: ${item.count}</label>`;
+                        toolsDiv.appendChild(toolElement);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
+</script>
+
+<style>
+    .tool-operation-form {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .tool-list {
+        margin-top: 20px;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+    }
+
+    .tool-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .tool-item label {
+        flex: 1;
+        margin-right: 10px;
+    }
+
+    .tool-item .form-control {
+        flex: 0 0 100px;
+    }
+
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .btn-primary:hover {
+        background-color: #45a049;
+    }
+
+    .brigade-tools {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #f1f1f1;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+
+    .brigade-tools .form-group {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}

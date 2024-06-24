@@ -233,3 +233,17 @@ class TextProcessingForm(forms.Form):
 class AddPileForm(forms.Form):
     pile = forms.ChoiceField(label='Выберите сваю')
     quantity = forms.IntegerField(label='Количество', min_value=1)
+
+class ToolOperationForm(forms.Form):
+    brigade = forms.ModelChoiceField(queryset=BrigadeWork.objects.all(), label='Выберите бригаду')
+    operation = forms.ChoiceField(choices=[('Списать', 'Списать'), ('Дать', 'Дать')], label='Выберите операцию')
+
+    def __init__(self, *args, **kwargs):
+        super(ToolOperationForm, self).__init__(*args, **kwargs)
+        tools = Tool.objects.all()
+        for tool in tools:
+            self.fields[f'tool_{tool.id}'] = forms.IntegerField(label=f'{tool.name}', min_value=0, required=False)
+
+class DateRangeForm(forms.Form):
+    start_date = forms.DateField(label='Дата начала', widget=forms.TextInput(attrs={'type': 'date'}))
+    end_date = forms.DateField(label='Дата окончания', required=False, widget=forms.TextInput(attrs={'type': 'date'}))

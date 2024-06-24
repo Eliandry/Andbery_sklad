@@ -2,7 +2,7 @@
 
 {% block content %}
 <a href="/" class="button">Назад</a>
-<h2>Операции на подтверждение отгрузок</h2>
+<h2>Создание отгрузок</h2>
 <style>
   .icon-true {
     color: green;
@@ -21,7 +21,6 @@
             <th>Количество</th>
             <th>Бригада</th>
             <th>Лид</th>
-            <th>Авто</th>
             <th>Примечание</th>
             <th>Действие</th>
             <th>Удаление</th>
@@ -38,7 +37,6 @@
                         {% if forloop.first %}
                         <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.brigade }}</td>
                         <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.manager }}</td>
-                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.number_car }}</td>
                         <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.description }}</td>
                         <td>
                             <a href="{% url 'update_send_operation' operation_id=arrival.id %}">Добавить отгрузку</a>
@@ -61,7 +59,7 @@
         </table>
 </div>
 
-<h2>Подтвержденные операции</h2>
+<h2>Подтвержденные монтажи</h2>
 
 <div>
     <table border="1">
