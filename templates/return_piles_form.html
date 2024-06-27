@@ -9,6 +9,32 @@
         <label for="brigade">Бригада:</label>
         <input type="text" id="brigade" name="brigade" value="{{ user_brigade.brigade.name }}" readonly>
     </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h3>Текущий долг</h3>
+    <table>
+        <tr>
+            <th>Название</th>
+            <th>Размер</th>
+            <th>Количество</th>
+        </tr>
+        {% for debt in debt_piles %}
+        <tr>
+            <td>{{ debt.name }}</td>
+            <td>{{ debt.size }}</td>
+            <td>{{ debt.quantity }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Возврат свай</h3>
     {% for pile in piles %}
     <div>
         <label for="pile_{{ pile.id }}">{{ pile.name.name }} {{ pile.size }}</label>

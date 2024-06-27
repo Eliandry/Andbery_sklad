@@ -2239,19 +2239,62 @@ class ReturnPilesView(View):
     def get(self, request):
         user_brigade = get_object_or_404(UserBrigade, user=request.user)
         piles = Pile.objects.filter(name__pile_type='жб')
-        return render(request, 'return_piles_form.html', {'user_brigade': user_brigade, 'piles': piles})
+
+        # Получаем текущий долг бригады
+        try:
+            debt = Debt.objects.get(brigade=user_brigade.brigade)
+            debt_details = json.loads(debt.details)
+            # Преобразуем идентификаторы свай в их имена и размеры
+            debt_piles = []
+            for pile_id, quantity in debt_details.items():
+                pile = Pile.objects.get(id=pile_id)
+                debt_piles.append({
+                    'id': pile.id,
+                    'name': pile.name.name,
+                    'size': pile.size,
+                    'quantity': quantity
+                })
+        except Debt.DoesNotExist:
+            debt_piles = []
+
+        return render(request, 'return_piles_form.html', {'user_brigade': user_brigade, 'piles': piles, 'debt_piles': debt_piles})
 
     def post(self, request):
         user_brigade = get_object_or_404(UserBrigade, user=request.user)
         details = {}
         description = request.POST.get('description', '')
 
+        # Получаем текущий долг бригады для проверки количества
+        try:
+            debt = Debt.objects.get(brigade=user_brigade.brigade)
+            debt_details = json.loads(debt.details)
+        except Debt.DoesNotExist:
+            debt_details = {}
+
+        has_error = False
         for key, value in request.POST.items():
             if key.startswith('pile_') and value:
                 pile_id = key.split('_')[1]
                 quantity = int(value)
                 if quantity > 0:
-                    details[pile_id] = quantity
+                    if pile_id not in debt_details or debt_details[pile_id] < quantity:
+                        messages.error(request, f"Количество для сваи {pile_id} превышает доступное количество.")
+                        has_error = True
+                    else:
+                        details[pile_id] = quantity
+
+        if has_error:
+            piles = Pile.objects.filter(name__pile_type='жб')
+            debt_piles = []
+            for pile_id, quantity in debt_details.items():
+                pile = Pile.objects.get(id=pile_id)
+                debt_piles.append({
+                    'id': pile.id,
+                    'name': pile.name.name,
+                    'size': pile.size,
+                    'quantity': quantity
+                })
+            return render(request, 'return_piles_form.html', {'user_brigade': user_brigade, 'piles': piles, 'debt_piles': debt_piles})
 
         return_piles = ReturnPiles(
             brigade=user_brigade.brigade,
@@ -2287,7 +2330,7 @@ class ReturnPilesListView(View):
 
 class ConfirmSkladView(View):
     def get(self, request):
-        return_piles_list = ReturnPiles.objects.filter(confirm_s=True, confirm_sklad=False)
+        return_piles_list = ReturnPiles.objects.filter(confirm_sklad=False)
         for return_pile in return_piles_list:
             return_pile.details_dict = json.loads(return_pile.details)
             for pile_id, quantity in return_pile.details_dict.items():
@@ -2309,6 +2352,24 @@ class ConfirmSkladView(View):
             pile = Pile.objects.get(id=int(pile_id))  # Преобразование в целое число
             pile.count += int(quantity)
             pile.save()
+
+        # Списываем сваи с бригады
+        brigade = return_pile.brigade
+        debt, created = Debt.objects.get_or_create(brigade=brigade)
+        debt_details = json.loads(debt.details) if not created else {}
+
+        for pile_id, quantity in di.items():
+            pile_id_str = str(pile_id)
+            if pile_id_str in debt_details:
+                debt_details[pile_id_str] -= int(quantity)
+                if debt_details[pile_id_str] <= 0:
+                    del debt_details[pile_id_str]
+            else:
+                continue
+
+        debt.details = json.dumps(debt_details)
+        debt.save()
+
         return redirect('/')
 
 
@@ -2336,16 +2397,19 @@ class DebtDetailView(View):
         debt.details = json.dumps(debt_details)
         debt.save()
         return redirect('debt_list')
+import logging
 
+logger = logging.getLogger(__name__)
 def confirm_departures_view(request):
     send_details = SendDetail.objects.filter(confirm=False)
     detail_debts = Detail_Debt.objects.filter(confirm=False)
 
-    # Расширяем details для отображения в send_details
     for detail in send_details:
         detail.piles_info = []
         try:
             details = json.loads(detail.details)
+            if isinstance(details, dict):
+                details = [details]  # Преобразуем в список, если это словарь
             for item in details:
                 if isinstance(item, dict) and "pile_id" in item and "quantity" in item:
                     pile_id = item["pile_id"]
@@ -2362,20 +2426,24 @@ def confirm_departures_view(request):
             detail.piles_info = []
             print(f"Error processing send_detail id={detail.id}: {e}")
 
-    # Расширяем details для отображения в detail_debts
     for debt in detail_debts:
         debt.piles_info = []
         try:
             details = json.loads(debt.details)
             if isinstance(details, dict):
-                for pile_id, quantity in details.items():
-                    pile = Pile.objects.get(id=int(pile_id))
-                    debt.piles_info.append({
-                        "pile": pile,
-                        "quantity": quantity
-                    })
-            else:
-                print(f"Unexpected details format in detail_debt id={debt.id}: {details}")
+                details = [details]  # Преобразуем в список, если это словарь
+            for item in details:
+                if isinstance(item, dict):
+                    pile_id = item.get("pile_id")
+                    quantity = item.get("quantity")
+                    if pile_id and quantity:
+                        pile = Pile.objects.get(id=int(pile_id))
+                        debt.piles_info.append({
+                            "pile": pile,
+                            "quantity": quantity
+                        })
+                else:
+                    print(f"Unexpected item format in detail_debt id={debt.id}: {item}")
         except (json.JSONDecodeError, Pile.DoesNotExist) as e:
             debt.piles_info = []
             print(f"Error processing detail_debt id={debt.id}: {e}")
@@ -2400,25 +2468,37 @@ def confirm_departures_view(request):
     return render(request, 'confirm_departures.html', {'send_details': send_details, 'detail_debts': detail_debts})
 
 
-
 def update_send_operation(request, operation_id):
     operation = get_object_or_404(OperationDeparture, id=operation_id)
     send_operation = get_object_or_404(SendOperation, operation=operation)
     details = json.loads(send_operation.details)
 
     if request.method == 'POST':
+        errors = []
         for detail in details:
             input_name = f"quantity_{detail['pile_id']}"
             if input_name in request.POST:
                 new_quantity = int(request.POST[input_name])
-                detail['quantity'] = max(0, detail['quantity'] - new_quantity)
+                if new_quantity > detail['quantity']:
+                    errors.append(f"Количество для сваи {detail['pile_id']} превышает оставшееся количество.")
+                else:
+                    detail['quantity'] = max(0, detail['quantity'] - new_quantity)
 
-                # Создаем запись в SendDetail
-                SendDetail.objects.create(
-                    operation=operation,
-                    details=json.dumps({"pile_id": detail['pile_id'], "quantity": new_quantity}),
-                    confirm=False
-                )
+                    # Создаем запись в SendDetail
+                    SendDetail.objects.create(
+                        operation=operation,
+                        details=json.dumps({"pile_id": detail['pile_id'], "quantity": new_quantity}),
+                        confirm=False
+                    )
+
+        if errors:
+            # Преобразуем ID сваи в наименование для отображения
+            for detail in details:
+                pile_object = Pile.objects.get(id=detail['pile_id'])
+                detail['name'] = pile_object.name.name
+                detail['size'] = pile_object.size
+
+            return render(request, 'update_send_operation.html', {'operation': operation, 'details': details, 'errors': errors})
 
         # Обновляем JSON details
         send_operation.details = json.dumps(details)

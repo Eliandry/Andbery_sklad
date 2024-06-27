@@ -18,6 +18,8 @@
         <td>
             {% for pile_info in detail.piles_info %}
                 {{ pile_info.pile.name.name }} {{ pile_info.pile.size }} - {{ pile_info.quantity }}<br>
+            {% empty %}
+                Нет данных
             {% endfor %}
         </td>
         <td>
@@ -47,6 +49,8 @@
         <td>
             {% for pile_info in debt.piles_info %}
                 {{ pile_info.pile.name.name }} {{ pile_info.pile.size }} - {{ pile_info.quantity }}<br>
+            {% empty %}
+                Нет данных
             {% endfor %}
         </td>
         <td>
