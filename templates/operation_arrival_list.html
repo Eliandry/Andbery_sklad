@@ -37,4 +37,33 @@
         {% endfor %}
     </tbody>
 </table>
+<div class="latest-operations">
+    <h3>Последние операции прихода</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Cваи</th>
+                <th>Количество</th>
+                <th>Описание</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for arrival in latest_arrivals %}
+                <tr>
+                    <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.date|date:"d.m.Y H:i" }}</td>
+                    {% for pile_info in arrival.piles_info %}
+                        {% if not forloop.first %}<tr>{% endif %}
+                        <td>{{ pile_info.pile.name }} {{ pile_info.pile.size }}</td>
+                        <td>{{ pile_info.quantity }}</td>
+                        {% if forloop.first %}
+                        <td rowspan="{{ arrival.piles_info|length }}">{{ arrival.description }}</td>
+                        {% endif %}
+                        {% if not forloop.last %}</tr>{% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

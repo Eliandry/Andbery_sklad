@@ -183,6 +183,10 @@ class SendDetail(models.Model):
     confirm = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now_add=True)
 
+class SendCount(models.Model):
+    operation=models.ForeignKey(OperationDeparture,on_delete=models.CASCADE)
+    details = models.TextField()
+
 class OperationDepCount(models.Model):
     operation=models.ForeignKey(OperationDeparture, on_delete=models.CASCADE)
     details = models.TextField()

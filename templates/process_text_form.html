@@ -1,6 +1,7 @@
 {% extends "index.html" %}
 {% block content %}
 <h2>Добавить отгрузку</h2>
+<a href="/" class="button">Назад</a>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

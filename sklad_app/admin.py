@@ -96,6 +96,7 @@ class ReturnPileAdmin(admin.ModelAdmin):
     filter_horizontal = ('user',)
 
 admin.site.register(SendOperation)
+admin.site.register(SendCount)
 admin.site.register(SendDetail)
 admin.site.register(ReturnPiles)
 admin.site.register(UserBrigade)

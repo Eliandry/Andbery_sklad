@@ -6,8 +6,8 @@
     {% csrf_token %}
     {% for pile in piles %}
     <div>
-        <label for="quantity_{{pile.pile_id}}">{{ pile.name }} {{ pile.size }} (Осталось: {{ pile.quantity }})</_label>
-        <input type="number" id="quantity_{{pile.pile_id}}" name="quantity_{{pile.pile_id}}" min="0" max="{{ pile.quantity }}" value="0">
+        <label for="quantity_{{pile.pile_id}}">{{ pile.name }} {{ pile.size }} (Осталось: {{ pile.remaining }})</label>
+        <input type="number" id="quantity_{{pile.pile_id}}" name="quantity_{{pile.pile_id}}" min="0" max="{{ pile.remaining }}" value="0">
     </div>
     {% endfor %}
     <button type="submit">Подтвердить</button>
